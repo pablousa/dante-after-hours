@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>DANTE — AFTER HOURS</title>
+<style>
+:root{
+  --black:#000;--graphite:#141517;--graphite2:#1d1f22;--line:#2a2c30;
+  --gold:#c8a24a;--gold-hi:#ecd592;--gold-lo:#7d6428;
+  --text:#ebe8e0;--muted:#8e8b83;--danger:#c4584a;
+  --serif:"Didot","Bodoni 72","Playfair Display",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,"SF Pro Text","Helvetica Neue",system-ui,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--black);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+body{background:radial-gradient(120% 60% at 50% -10%,#1f1b12 0%,#0a0a0b 45%,#000 100%) fixed}
+[hidden]{display:none!important}
+.screen{min-height:100dvh;width:100%;max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 24px)}
+h1,h2,h3{font-weight:400;margin:0}
+h2{font-family:var(--serif);font-size:20px;color:var(--gold-hi);margin-bottom:12px}
+p{margin:0 0 12px}
+.muted{color:var(--muted)}.small{font-size:14px}
+
+/* Botões */
+.btn{display:block;width:100%;min-height:50px;padding:12px 18px;border-radius:12px;border:1px solid var(--gold);background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:#120f05;font:600 16px var(--sans);letter-spacing:.02em;cursor:pointer;touch-action:manipulation}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:transparent;color:var(--gold-hi);border-color:var(--gold-lo)}
+.btn.danger{background:transparent;color:var(--danger);border-color:#5a2c26}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn:focus-visible,.nav button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+.stack>*+*{margin-top:12px}
+
+/* Tela inicial */
+#title{display:flex;flex-direction:column;justify-content:center;gap:48px}
+.logo{text-align:center}
+.logo h1{font-family:var(--serif);font-size:clamp(60px,22vw,104px);letter-spacing:.16em;padding-left:.16em;line-height:1;background:linear-gradient(180deg,var(--gold-hi) 10%,var(--gold) 55%,var(--gold-lo));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo .sub{margin-top:14px;font-size:13px;letter-spacing:.62em;padding-left:.62em;color:var(--muted)}
+.road{position:relative;height:1px;margin:28px auto 0;width:70%;background:var(--line);overflow:hidden}
+.road::after{content:"";position:absolute;top:0;left:-30%;height:1px;width:30%;background:linear-gradient(90deg,transparent,var(--gold-hi),transparent);animation:sweep 2.6s ease-out 1 .4s forwards}
+@keyframes sweep{to{left:100%}}
+@media (prefers-reduced-motion:reduce){.road::after{animation:none;left:35%}}
+.resume{border:1px solid var(--line);background:var(--graphite);border-radius:14px;padding:14px 16px}
+.resume b{font-family:var(--serif);font-weight:400;font-size:18px;color:var(--gold-hi)}
+
+/* Cartões */
+.card{background:var(--graphite);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+.card.dim{background:transparent;border-style:dashed}
+label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+input,textarea{width:100%;background:var(--black);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:16px var(--sans)}
+textarea{resize:none;min-height:84px}
+.field{margin-bottom:16px}
+.err{color:var(--danger);font-size:14px;min-height:20px;margin:4px 0 0}
+
+/* Atributos */
+.attr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.attr:first-of-type{border-top:0}
+.attr .nm{font-weight:600}
+.attr .ds{grid-column:1;font-size:13px;color:var(--muted)}
+.pips{display:flex;gap:5px}
+.pips i{width:16px;height:6px;border-radius:3px;background:var(--graphite2);border:1px solid var(--line)}
+.pips i.on{background:var(--gold);border-color:var(--gold)}
+.ctrl{display:flex;align-items:center;gap:10px}
+.ctrl button{width:44px;height:44px;border-radius:50%;border:1px solid var(--gold-lo);background:transparent;color:var(--gold-hi);font-size:22px;cursor:pointer;touch-action:manipulation}
+.ctrl button:disabled{opacity:.25}
+.ctrl output{min-width:18px;text-align:center;font-weight:600}
+.pool{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.pool strong{font-family:var(--serif);font-size:28px;color:var(--gold-hi);font-weight:400}
+
+/* Jogo */
+#game{padding:0;max-width:480px}
+.top{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.88);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top,0px) + 10px) 20px 10px;display:flex;justify-content:space-between;align-items:center}
+.top .clock{font-family:var(--serif);font-size:26px;color:var(--gold-hi);line-height:1.1}
+.top .day{font-size:13px;color:var(--muted);text-align:right}
+main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
+.who{font-family:var(--serif);font-size:28px;color:var(--gold-hi);line-height:1.15}
+.bio{margin-top:10px;color:var(--text);font-style:italic;white-space:pre-wrap;overflow-wrap:anywhere}
+.date{font-family:var(--serif);font-size:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:8px 0;border-top:1px solid var(--line);color:var(--muted);font-size:15px}
+.list li:first-child{border-top:0}
+.entry{padding:12px 0;border-top:1px solid var(--line)}
+.entry:first-child{border-top:0}
+.entry time{display:block;font-size:12px;color:var(--gold-lo)}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:center;background:rgba(0,0,0,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav div{display:flex;width:100%;max-width:480px}
+.nav button{flex:1;min-height:56px;background:none;border:0;color:var(--muted);font:500 14px var(--sans);cursor:pointer;border-top:2px solid transparent;touch-action:manipulation}
+.nav button[aria-current="page"]{color:var(--gold-hi);border-top-color:var(--gold)}
+.save{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<noscript><p style="padding:24px">Este jogo precisa de JavaScript ativado.</p></noscript>
+
+<!-- TELA INICIAL -->
+<section id="title" class="screen" hidden>
+  <div class="logo">
+    <h1>DANTE</h1>
+    <div class="sub">AFTER HOURS</div>
+    <div class="road" aria-hidden="true"></div>
+  </div>
+  <div class="stack">
+    <div id="resume" class="resume" hidden></div>
+    <button class="btn" id="btnContinue" data-act="continue" hidden>Continuar</button>
+    <button class="btn ghost" data-act="new">Novo jogo</button>
+    <p id="storageWarn" class="err" hidden>O navegador bloqueou o armazenamento. Você pode jogar, mas o progresso não será salvo.</p>
+  </div>
+</section>
+
+<!-- CRIAÇÃO DE PERSONAGEM -->
+<section id="create" class="screen" hidden>
+  <h2 style="font-size:26px;margin-top:8px">Quem é você?</h2>
+  <p class="muted small">Tudo aqui é seu. O jogo não decide nada por você depois.</p>
+  <div class="card">
+    <div class="field"><label for="inName">Nome</label><input id="inName" maxlength="24" autocomplete="off" autocapitalize="words"></div>
+    <div class="field"><label for="inAge">Idade (18 a 80)</label><input id="inAge" type="number" inputmode="numeric" min="18" max="80" value="25"></div>
+    <div class="field" style="margin-bottom:0"><label for="inBio">Em poucas palavras (opcional)</label><textarea id="inBio" maxlength="160"></textarea></div>
+  </div>
+  <div class="card">
+    <div class="pool"><h2 style="margin:0">Atributos</h2><span>Restam <strong id="pool">0</strong></span></div>
+    <div id="attrRows"></div>
+  </div>
+  <p id="createErr" class="err" role="alert"></p>
+  <div class="stack">
+    <button class="btn" id="btnStart" data-act="start">Começar</button>
+    <button class="btn ghost" data-act="back">Voltar</button>
+  </div>
+</section>
+
+<!-- JOGO -->
+<section id="game" class="screen" hidden>
+  <header class="top">
+    <div><div class="clock" id="hClock"></div><div class="small muted" id="hPeriod"></div></div>
+    <div class="day"><div id="hDay"></div><div class="save" id="hSave"></div></div>
+  </header>
+  <main id="view"></main>
+  <nav class="nav" aria-label="Navegação principal"><div id="nav"></div></nav>
+</section>
+
+<script>
+'use strict';
+/* ==========================================================
+   DANTE — AFTER HOURS  ·  v0.1
+   Organização: Config → Util → Tempo → Estado/Salvamento →
+   Ações do jogo → Views (registro) → Interface → Início
+   Para criar um sistema novo: adicione um item em VIEWS e
+   um campo ao estado (com migração em migrate()).
+   ========================================================== */
+
+/* ---------- Config ---------- */
+const SAVE_KEY = 'dante_after_hours_save';
+const SAVE_VERSION = 1;
+const MAX_ATTR = 5, POOL = 10;
+const ATTRS = [
+  {id:'direcao',  nome:'Direção',   desc:'Controle do carro quando o ritmo aperta.'},
+  {id:'mecanica', nome:'Mecânica',  desc:'Entender o que motor, câmbio e suspensão estão dizendo.'},
+  {id:'carisma',  nome:'Carisma',   desc:'Fazer as pessoas quererem ouvir você.'},
+  {id:'intelecto',nome:'Intelecto', desc:'Ler situações, números e pessoas.'},
+  {id:'frieza',   nome:'Frieza',    desc:'Manter a cabeça fria sob pressão.'}
+];
+const PLANNED = ['Dinheiro e banco','Empregos e atividades','Garagem e carros','Locais e deslocamentos','Pessoas e reputação'];
+
+/* ---------- Util ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+
+/* ---------- Tempo (minutos absolutos, em UTC) ---------- */
+const DIAS = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const DAY0 = Date.UTC(2027, 2, 5) / 60000;   // sexta-feira, 5 de março de 2027
+const START = DAY0 + 21 * 60;                // o jogo começa às 21:00
+const asDate = m => new Date(m * 60000);
+const fmtTime = m => { const d = asDate(m); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); };
+const fmtDate = m => { const d = asDate(m); return cap(DIAS[d.getUTCDay()]) + ', ' + d.getUTCDate() + ' de ' + MESES[d.getUTCMonth()] + ' de ' + d.getUTCFullYear(); };
+const dayIndex = m => Math.floor((m - DAY0) / 1440);
+const period = m => { const h = asDate(m).getUTCHours(); return h < 6 ? 'Madrugada' : h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite'; };
+
+/* ---------- Estado e salvamento ---------- */
+let G = null;            // estado do jogo
+let storageOk = true;    // localStorage disponível?
+let view = 'painel';
+let draft = null;        // personagem em criação
+
+try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch (e) { storageOk = false; }
+
+function newGame(player) {
+  return { v: SAVE_VERSION, player, time: START, diary: [], created: Date.now() };
+}
+function migrate(d) {
+  // Futuras versões: converta aqui saves antigos antes de devolver.
+  return d;
+}
+function validSave(d) {
+  return !!d && d.v === SAVE_VERSION && d.player && typeof d.player.name === 'string' &&
+    d.player.attrs && typeof d.time === 'number' && isFinite(d.time) && Array.isArray(d.diary);
+}
+function loadSave() {
+  if (!storageOk) return null;
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const d = migrate(JSON.parse(raw));
+    if (!validSave(d)) return null;
+    ATTRS.forEach(a => { d.player.attrs[a.id] = clamp(Math.round(Number(d.player.attrs[a.id]) || 1), 1, MAX_ATTR); });
+    return d;
+  } catch (e) { return null; }
+}
+function persist() {
+  if (!storageOk || !G) return false;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); return true; }
+  catch (e) { storageOk = false; return false; }
+}
+function commit() {            // chamada após toda mudança de estado
+  const ok = persist();
+  $('#hSave').textContent = ok ? 'Salvo automaticamente' : 'Progresso não está sendo salvo';
+}
+
+/* ---------- Ações do jogo ---------- */
+function remember(text, t) {
+  G.diary.push({ t: t === undefined ? G.time : t, text });
+  if (G.diary.length > 500) G.diary.shift();
+}
+function advance(mins) {
+  const before = dayIndex(G.time);
+  G.time += mins;
+  const after = dayIndex(G.time);
+  for (let d = before + 1; d <= after; d++) remember('Começa o dia ' + (d + 1) + '.', DAY0 + d * 1440);
+  commit(); renderGame();
+}
+function minutesUntil(hour) {
+  const m = ((G.time % 1440) + 1440) % 1440, target = hour * 60;
+  return target > m ? target - m : 1440 - m + target;
+}
+
+/* ---------- Views (registro expansível) ---------- */
+const VIEWS = {
+  painel: {
+    label: 'Painel',
+    render() {
+      const p = G.player;
+      const attrs = ATTRS.map(a => `<div class="attr"><span class="nm">${a.nome}</span><span class="pips" aria-label="${p.attrs[a.id]} de ${MAX_ATTR}">${pips(p.attrs[a.id])}</span><span class="ds">${a.desc}</span></div>`).join('');
+      return `
+      <section class="card">
+        <div class="who">${esc(p.name)}</div>
+        <div class="muted small">${p.age} anos</div>
+        ${p.bio ? `<div class="bio">${esc(p.bio)}</div>` : ''}
+      </section>
+      <section class="card">
+        <h2>Agora</h2>
+        <div class="date">${fmtDate(G.time)}</div>
+        <div class="muted small">${fmtTime(G.time)} · ${period(G.time).toLowerCase()} · dia ${dayIndex(G.time) + 1}</div>
+        <div class="grid">
+          <button class="btn ghost" data-act="adv" data-m="15">Esperar 15 min</button>
+          <button class="btn ghost" data-act="adv" data-m="60">Esperar 1 hora</button>
+          <button class="btn ghost" data-act="adv" data-m="180">Esperar 3 horas</button>
+          <button class="btn ghost" data-act="adv" data-m="until6">Esperar até as 06:00</button>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Atributos</h2>
+        ${attrs}
+        <p class="muted small" style="margin:12px 0 0">Os atributos ainda não influenciam nenhuma ação. Os sistemas que vão usá-los chegam nas próximas versões.</p>
+      </section>
+      <section class="card dim">
+        <h2>Ainda não disponível</h2>
+        <ul class="list">${PLANNED.map(x => `<li>${x}</li>`).join('')}</ul>
+      </section>`;
+    }
+  },
+  diario: {
+    label: 'Diário',
+    render() {
+      const items = G.diary.slice().reverse().map(e =>
+        `<div class="entry"><time>${fmtDate(e.t)} · ${fmtTime(e.t)}</time>${esc(e.text)}</div>`).join('');
+      return `<section class="card"><h2>Diário</h2>${items || '<p class="muted">Nada registrado ainda.</p>'}</section>`;
+    }
+  },
+  sistema: {
+    label: 'Sistema',
+    render() {
+      return `
+      <section class="card">
+        <h2>Salvamento</h2>
+        <p>${storageOk ? 'O progresso é salvo automaticamente neste navegador após cada ação.' : 'O armazenamento do navegador está bloqueado. O progresso não está sendo salvo.'}</p>
+        <p class="muted small">Limpar os dados do site no navegador apaga o jogo salvo.</p>
+      </section>
+      <section class="card">
+        <h2>Menu</h2>
+        <div class="stack">
+          <button class="btn ghost" data-act="menu">Voltar à tela inicial</button>
+          <button class="btn danger" data-act="wipe">Apagar este jogo</button>
+        </div>
+      </section>
+      <p class="muted small" style="text-align:center">DANTE — AFTER HOURS · versão 0.1</p>`;
+    }
+  }
+};
+function pips(n) { return Array.from({ length: MAX_ATTR }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join(''); }
+
+/* ---------- Interface ---------- */
+function show(id) {
+  ['title', 'create', 'game'].forEach(s => { $('#' + s).hidden = s !== id; });
+  window.scrollTo(0, 0);
+}
+function renderTitle() {
+  const s = loadSave();
+  $('#resume').hidden = $('#btnContinue').hidden = !s;
+  if (s) $('#resume').innerHTML = `<b>${esc(s.player.name)}</b><div class="muted small">Dia ${dayIndex(s.time) + 1} · ${fmtTime(s.time)}</div>`;
+  $('#storageWarn').hidden = storageOk;
+  show('title');
+}
+function renderGame() {
+  $('#hClock').textContent = fmtTime(G.time);
+  $('#hPeriod').textContent = period(G.time);
+  $('#hDay').textContent = 'Dia ' + (dayIndex(G.time) + 1);
+  $('#nav').innerHTML = Object.keys(VIEWS).map(k =>
+    `<button data-act="nav" data-v="${k}"${k === view ? ' aria-current="page"' : ''}>${VIEWS[k].label}</button>`).join('');
+  $('#view').innerHTML = VIEWS[view].render();
+}
+function enterGame() {
+  view = 'painel';
+  show('game');
+  renderGame();
+  commit();
+}
+
+/* Criação de personagem */
+function startCreate() {
+  draft = { attrs: {} };
+  ATTRS.forEach(a => { draft.attrs[a.id] = 1; });
+  $('#inName').value = ''; $('#inAge').value = 25; $('#inBio').value = '';
+  $('#createErr').textContent = '';
+  $('#attrRows').innerHTML = ATTRS.map(a => `
+    <div class="attr" data-id="${a.id}">
+      <span class="nm">${a.nome}</span>
+      <span class="ctrl"><button type="button" data-act="attr" data-id="${a.id}" data-d="-1" aria-label="Diminuir ${a.nome}">−</button><output></output><button type="button" data-act="attr" data-id="${a.id}" data-d="1" aria-label="Aumentar ${a.nome}">+</button></span>
+      <span class="ds">${a.desc}</span>
+    </div>`).join('');
+  updateCreate();
+  show('create');
+}
+function spent() { return ATTRS.reduce((t, a) => t + draft.attrs[a.id] - 1, 0); }
+function updateCreate() {
+  const left = POOL - spent();
+  $('#pool').textContent = left;
+  ATTRS.forEach(a => {
+    const row = $('.attr[data-id="' + a.id + '"]');
+    const v = draft.attrs[a.id];
+    $('output', row).textContent = v;
+    const [minus, plus] = row.querySelectorAll('button');
+    minus.disabled = v <= 1;
+    plus.disabled = v >= MAX_ATTR || left <= 0;
+  });
+}
+function finishCreate() {
+  const name = $('#inName').value.trim().replace(/\s+/g, ' ');
+  const age = Math.round(Number($('#inAge').value));
+  const bio = $('#inBio').value.trim().slice(0, 160);
+  const err = $('#createErr');
+  if (name.length < 2) { err.textContent = 'Escolha um nome com pelo menos 2 letras.'; $('#inName').focus(); return; }
+  if (!isFinite(age) || age < 18 || age > 80) { err.textContent = 'A idade precisa estar entre 18 e 80 anos.'; $('#inAge').focus(); return; }
+  if (spent() !== POOL) { err.textContent = 'Distribua todos os pontos de atributo antes de começar.'; return; }
+  err.textContent = '';
+  G = newGame({ name, age, bio, attrs: Object.assign({}, draft.attrs) });
+  remember('Início da sua história. Sexta-feira à noite.');
+  enterGame();
+}
+
+/* Eventos (delegação) */
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  if (act === 'continue') { const s = loadSave(); if (s) { G = s; enterGame(); } else renderTitle(); }
+  else if (act === 'new') {
+    if (loadSave() && !confirm('Já existe um jogo salvo. Ele só será substituído quando você terminar de criar o novo personagem. Continuar?')) return;
+    startCreate();
+  }
+  else if (act === 'back') renderTitle();
+  else if (act === 'attr') {
+    const id = el.dataset.id, d = Number(el.dataset.d), v = draft.attrs[id] + d;
+    if (v < 1 || v > MAX_ATTR || (d > 0 && spent() >= POOL)) return;
+    draft.attrs[id] = v; updateCreate();
+  }
+  else if (act === 'start') finishCreate();
+  else if (act === 'nav') { view = el.dataset.v; renderGame(); window.scrollTo(0, 0); }
+  else if (act === 'adv') advance(el.dataset.m === 'until6' ? minutesUntil(6) : Number(el.dataset.m));
+  else if (act === 'menu') { renderTitle(); }
+  else if (act === 'wipe') {
+    if (!confirm('Apagar este jogo salvo? Isso não pode ser desfeito.')) return;
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    G = null; renderTitle();
+  }
+});
+
+/* ---------- Início ---------- */
+renderTitle();
+</script>
+</body>
+</html>
