@@ -158,7 +158,7 @@ export default async (request) => {
     if (geminiApiKey) {
       const models = [...new Set([
         process.env.GEMINI_MODEL || 'gemini-3.8-flash',
-        process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash-lite'
+        process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.5-flash-lite'
       ])];
       let geminiSucceeded = false;
 
@@ -212,7 +212,7 @@ export default async (request) => {
 
     // 2) Fallback GroqCloud: executado se Gemini estiver ausente, inválido ou indisponível.
     if (!result && groqApiKey) {
-      const groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+      const groqModel = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
       try {
         const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -250,8 +250,9 @@ export default async (request) => {
 
     if (!result) {
       const details = providerErrors.length ? providerErrors.join(' | ').slice(0, 420) : 'Nenhum provedor conseguiu gerar uma resposta.';
+      const groqStatus = groqApiKey ? 'GROQ_API_KEY foi encontrada pela função.' : 'GROQ_API_KEY NÃO foi encontrada pela função; confira se está cadastrada no ambiente de produção com escopo Functions e se houve novo deploy.';
       return jsonResponse(503, {
-        error: `A IA não conseguiu responder. Verifique as chaves e os modelos configurados no Netlify. ${details}`
+        error: `A IA não conseguiu responder. ${groqStatus} ${details}`
       });
     }
 
