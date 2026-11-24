@@ -279,6 +279,7 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 .wa-send svg{width:20px;height:20px}
 .wa-empty{padding:30px 22px;text-align:center;color:#7d898e;font-size:12px}\n.wa-ai-note{padding:8px 12px;background:#fff6d8;color:#796b46;font-size:10px;line-height:1.4;text-align:center;border-bottom:1px solid #e7ddc4}
 .wa-empty b{display:block;color:#536169;font-size:14px;margin-bottom:6px}
+.wa-typing{align-self:flex-start;color:#66736e;background:#ffffffd9;border-radius:12px;padding:7px 11px;font-size:11px;font-style:italic}
 @media(max-width:380px){.wa-contact{padding:10px 12px}.wa-avatar{width:45px;height:45px;flex-basis:45px}}
 
 
@@ -505,6 +506,8 @@ const DAY0 = Date.UTC(2027, 2, 5) / 60000;   // sexta-feira, 5 de março de 2027
 const START = Date.UTC(2027, 2, 8) / 60000 + 17 * 60 + 3; // segunda-feira, 17:03
 const asDate = m => new Date(m * 60000);
 const fmtTime = m => { const d = asDate(m); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); };
+// Um único relógio de jogo alimenta cabeçalho, local, histórico e telefone.
+const gameClock = () => fmtTime(G ? G.time : START);
 const fmtDate = m => { const d = asDate(m); return cap(DIAS[d.getUTCDay()]) + ', ' + d.getUTCDate() + ' de ' + MESES[d.getUTCMonth()] + ' de ' + d.getUTCFullYear(); };
 const dayIndex = m => Math.floor((m - DAY0) / 1440);
 const period = m => { const h = asDate(m).getUTCHours(); return h < 6 ? 'Madrugada' : h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite'; };
@@ -552,7 +555,20 @@ function migrate(d) {
     d.rec = []; d.pend = [];   // v0.3: despesas recorrentes manuais foram removidas
     d.npcs = (Array.isArray(d.npcs) ? d.npcs : []).filter(q => q && typeof q.id === 'string' && typeof q.name === 'string' && typeof q.occ === 'string');
     if (!d.npcs.length) d.npcs = JSON.parse(JSON.stringify(NPC_SEED));
-    d.npcs.forEach(q => { q.cash = n(q.cash); q.income = n(q.income); q.bond = clamp(Number(q.bond) || 0, 0, 100); q.gen = clamp(Number(q.gen) || 0, 0, 100); q.rel = clamp(Number(q.rel) || 0, 0, 100); q.cd = Number(q.cd) || 0; });
+    d.npcs.forEach(q => {
+      q.cash = n(q.cash); q.income = n(q.income); q.bond = clamp(Number(q.bond) || 0, 0, 100);
+      q.gen = clamp(Number(q.gen) || 0, 0, 100); q.rel = clamp(Number(q.rel) || 0, 0, 100); q.cd = Number(q.cd) || 0;
+      const hasSocial = q.social && typeof q.social === 'object';
+      const social = hasSocial ? q.social : {};
+      q.social = {
+        friendship: clamp(Number(social.friendship ?? q.rel) || 0, 0, 100),
+        trust: clamp(Number(social.trust ?? q.bond) || 0, 0, 100),
+        intimacy: clamp(Number(social.intimacy) || 0, 0, 100),
+        romance: clamp(Number(social.romance) || 0, 0, 100),
+        lastInitiative: Number(social.lastInitiative) || 0,
+        memories: Array.isArray(social.memories) ? social.memories.slice(-12).map(x => String(x).slice(0,180)) : []
+      };
+    });
     // Acrescenta o elenco do RPG sem apagar NPCs ou relações de saves antigos.
     NPC_SEED.forEach(seed => {
       if (!d.npcs.some(q => q.id === seed.id)) d.npcs.push(JSON.parse(JSON.stringify(seed)));
@@ -617,7 +633,11 @@ function completeActiveAction() {
   if (a.narration) addLog('narration', a.narration);
   (a.npcReactions || []).forEach(r => {
     const npc = G.npcs.find(q => q.id === r.npcId && q.locationId === G.world.locationId);
-    if (npc && r.text) addLog('npc', r.text);
+    if (npc && r.text) {
+      addBond(npc, 1);
+      applySocialChanges(npc, { friendship: 1 }, 'Interação presencial: ' + r.text.slice(0,120));
+      addLog('npc', npc.name + ': ' + r.text);
+    }
   });
   if (G.world.sceneLog.length > 300) G.world.sceneLog.splice(0, G.world.sceneLog.length - 300);
   G.world.activeAction = null;
@@ -637,6 +657,7 @@ function advanceTime(mins) {
   worldTick(t0, G.time);
   const actionCompleted = !!(G.world && G.world.activeAction && G.time >= G.world.activeAction.endTime);
   if (actionCompleted) completeActiveAction();
+  void maybeNpcInitiates(t0, mins);
   const ok = commit();
   updateClockDisplay();
   // A tela inteira só é reconstruída quando há uma mudança real de conteúdo.
@@ -706,10 +727,10 @@ function getTransactionHistory(f) { return G.tx.filter(x => f === 'all' || x.typ
    Nada aqui mexe em saldo diretamente: tudo passa por addMoney / spendMoney / transferMoney. */
 const LOANCATS = new Set(['Empréstimo', 'Empréstimo concedido', 'Dívida paga', 'Dívida recebida']);  // não contam como receita/despesa
 const NPC_SEED = [
-  { id: 'emily', name: 'Emily Carter', occ: 'Designer gráfica · 23 anos', cash: 85000, income: 420000, bond: 72, gen: 68, rel: 76, locationId: 'apartment_long_beach', role: 'Companheira; relação carinhosa em desenvolvimento' },
-  { id: 'frank', name: 'Frank Miller', occ: 'Mecânico · chefe e mentor', cash: 180000, income: 620000, bond: 58, gen: 72, rel: 85, locationId: 'westside_auto_repair', gigs: true, role: 'Chefe de Dante na Westside Auto Repair' },
-  { id: 'ryan', name: 'Ryan Mitchell', occ: 'Entusiasta automotivo', cash: 240000, income: 700000, bond: 68, gen: 76, rel: 70, locationId: 'off_scene', role: 'Amigo; proprietário de um Toyota Supra MK4' },
-  { id: 'chris', name: 'Chris', occ: 'Possível cliente', cash: 300000, income: 0, bond: 25, gen: 55, rel: 50, locationId: 'off_scene', role: 'Possível cliente; proprietário de um Ford Mustang GT' }
+  { id: 'emily', name: 'Emily Carter', occ: 'Designer gráfica · 23 anos', cash: 85000, income: 420000, bond: 72, gen: 68, rel: 76, locationId: 'apartment_long_beach', role: 'Companheira; relação carinhosa em desenvolvimento', personality: 'Afetuosa, criativa e independente. Gosta de design, música e conversas honestas; percebe quando Dante está distante.' },
+  { id: 'frank', name: 'Frank Miller', occ: 'Mecânico · chefe e mentor', cash: 180000, income: 620000, bond: 58, gen: 72, rel: 85, locationId: 'westside_auto_repair', gigs: true, role: 'Chefe de Dante na Westside Auto Repair', personality: 'Experiente, direto e exigente, mas justo. Fala de forma prática, valoriza trabalho bem feito e demonstra respeito mais por atitudes que elogios.' },
+  { id: 'ryan', name: 'Ryan Mitchell', occ: 'Entusiasta automotivo', cash: 240000, income: 700000, bond: 68, gen: 76, rel: 70, locationId: 'off_scene', role: 'Amigo; proprietário de um Toyota Supra MK4', personality: 'Extrovertido, competitivo e apaixonado por carros. Gosta de provocar os amigos, organizar encontros e compartilhar novidades automotivas.' },
+  { id: 'chris', name: 'Chris', occ: 'Possível cliente', cash: 300000, income: 0, bond: 25, gen: 55, rel: 50, locationId: 'off_scene', role: 'Possível cliente; proprietário de um Ford Mustang GT', personality: 'Pragmático e cauteloso com dinheiro. É educado, mas demora a confiar; prefere clareza, competência e acordos cumpridos.' }
 ];
 
 const WORLD_PLACES = {
@@ -1046,14 +1067,11 @@ const VIEWS = {
       const w = G.world || worldBlank(G.time);
       const place = WORLD_PLACES[w.locationId] || WORLD_PLACES.off_scene;
       const present = G.npcs.filter(q => q.locationId === w.locationId);
-      const elsewhere = G.npcs.filter(q => q.locationId !== w.locationId);
-      const vehicle = w.vehicle || { name: 'Nenhum veículo', year: '', status: 'Indisponível' };
-      const due = vehicle && Number.isFinite(vehicle.returnAt) ? fmtTime(vehicle.returnAt) : null;
       const entries = (G.world.sceneLog || []).slice().sort((a, b) => a.t - b.t || a.id - b.id);
       const log = entries.map(e => {
         const legacyPlayer = e.kind === 'action' || e.kind === 'speech';
         const kind = legacyPlayer ? 'player' : e.kind;
-        const author = kind === 'player' ? 'Dante' : kind === 'npc' ? 'Pessoa presente' : 'Cena';
+        const author = kind === 'player' ? 'Dante' : kind === 'npc' ? (present[0]?.name || 'NPC') : 'Cena';
         const hasNpcName = kind === 'npc' && e.text.includes(': ');
         const text = hasNpcName ? e.text.slice(e.text.indexOf(': ') + 2) : e.text;
         const who = hasNpcName ? e.text.slice(0, e.text.indexOf(': ')) : author;
@@ -1062,7 +1080,7 @@ const VIEWS = {
       return `
       <section class="world-hero scene-location-card">
         <div class="world-eyebrow">LOCAL ATUAL · LOS ANGELES</div>
-        <div class="world-time">${fmtTime(G.time)}</div>
+        <div class="world-time">${gameClock()}</div>
         <div class="world-date">${fmtDate(G.time)}</div>
         <h1>${esc(place.name)}</h1>
         <div class="world-area">${esc(place.area)}</div>
@@ -1071,11 +1089,6 @@ const VIEWS = {
       <section class="card scene-presence-card">
         <div class="world-section-head"><h2>Quem está neste local</h2><span>${present.length} ${present.length === 1 ? 'pessoa' : 'pessoas'}</span></div>
         ${present.length ? present.map(q => `<div class="world-person"><div class="world-avatar">${esc(q.name.slice(0,1))}</div><div class="world-person-main"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></div><span class="world-status">Presente</span></div>`).join('') : '<p class="muted small">Dante está sozinho neste local.</p>'}
-      </section>
-      <section class="card scene-context-card">
-        <div class="world-section-head"><h2>Contexto ao redor</h2><span>${elsewhere.length} fora daqui</span></div>
-        <div class="world-vehicle"><div><b>${esc(vehicle.name)} ${vehicle.year || ''}</b><small>${esc(vehicle.status || '')}</small></div>${due ? `<div class="world-deadline"><small>Devolução</small><b>${due}</b></div>` : ''}</div>
-        ${elsewhere.length ? `<div class="scene-away-list">${elsewhere.map(q => { const loc = WORLD_PLACES[q.locationId] || WORLD_PLACES.off_scene; return `<div class="world-away"><b>${esc(q.name)}</b><span>${esc(loc.name)} · ${esc(q.occ)}</span></div>`; }).join('')}</div>` : ''}
       </section>
       <section class="card scene-history-card">
         <div class="world-section-head"><h2>Registro da cena</h2><span>${entries.length} registros</span></div>
@@ -1098,7 +1111,7 @@ const VIEWS = {
       ${G.npcs.map(q => {
         const debts = G.debts.filter(d => d.npc === q.id).map(d => `<div class="muted small">${d.dir === 'owe' ? 'Você deve' : 'Deve a você'} ${fmtUSD(d.amt)} · até ${fmtShort(d.due)}</div>`).join('');
         const loc = WORLD_PLACES[q.locationId] || WORLD_PLACES.off_scene;
-        return `<div class="world-person world-person-card"><div class="world-avatar">${esc(q.name.slice(0,1))}</div><div class="world-person-main"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small><small>${esc(loc.name)} · ${bondWord(q.bond)}</small>${q.role ? `<small>${esc(q.role)}</small>` : ''}${debts}</div></div>`;
+        return `<div class="world-person world-person-card"><div class="world-avatar">${esc(q.name.slice(0,1))}</div><div class="world-person-main"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small><small>${esc(loc.name)}</small>${q.role ? `<small>${esc(q.role)}</small>` : ''}${debts}</div></div>`;
       }).join('')}</section>`;
     }
   },
@@ -1200,7 +1213,7 @@ function renderTitle() {
 }
 function updateClockDisplay() {
   if (!G) return;
-  $('#hClock').textContent = fmtTime(G.time);
+  $('#hClock').textContent = gameClock();
   $('#hPeriod').textContent = period(G.time);
   $('#hDay').textContent = fmtShort(G.time);
   updatePhoneClock();
@@ -1271,8 +1284,8 @@ function phoneDate() {
 }
 function updatePhoneClock() {
   if (!G) return;
-  $('#phoneStatusTime').textContent = fmtTime(G.time);
-  $('#phoneLockTime').textContent = fmtTime(G.time);
+  $('#phoneStatusTime').textContent = gameClock();
+  $('#phoneLockTime').textContent = gameClock();
   $('#phoneLockDate').textContent = phoneDate();
   $('#phoneHomeDate').textContent = phoneDate();
 }
@@ -1340,7 +1353,7 @@ function renderWhatsApp(page, npcId) {
     if (!q) { renderWhatsApp('list'); return; }
     const messages = waMessagesFor(q.id);
     const body = messages.length ? messages.map(m => `<div class="wa-bubble ${m.from === 'player' ? 'player' : 'npc'}">${esc(m.text)}<time>${waClock(m.t)}</time></div>`).join('') : '<div class="wa-date-pill">Esta é uma conversa nova</div><div class="wa-empty">Envie uma mensagem para começar a conversar.</div>';
-    app.innerHTML = `<div class="wa-shell"><header class="wa-chat-head"><button type="button" data-wa="list" aria-label="Voltar às conversas">‹</button><span class="wa-avatar">${esc(q.name.slice(0,1).toUpperCase())}</span><div class="wa-chat-name"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></div></header><div class="wa-ai-note">As respostas dos personagens serão geradas pela IA quando ela for integrada. Nenhuma resposta pronta é simulada.</div><div class="wa-messages" id="waMessages">${body}</div><form class="wa-compose" id="waCompose"><input id="waInput" type="text" maxlength="500" autocomplete="off" placeholder="Mensagem" aria-label="Mensagem"><button class="wa-send" type="submit" aria-label="Enviar mensagem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button></form></div>`;
+    app.innerHTML = `<div class="wa-shell"><header class="wa-chat-head"><button type="button" data-wa="list" aria-label="Voltar às conversas">‹</button><span class="wa-avatar">${esc(q.name.slice(0,1).toUpperCase())}</span><div class="wa-chat-name"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></div></header><div class="wa-messages" id="waMessages">${body}</div><form class="wa-compose" id="waCompose"><input id="waInput" type="text" maxlength="500" autocomplete="off" placeholder="Mensagem" aria-label="Mensagem"><button class="wa-send" type="submit" aria-label="Enviar mensagem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button></form></div>`;
     const scroller = $('#waMessages'); if (scroller) scroller.scrollTop = scroller.scrollHeight;
     return;
   }
@@ -1351,15 +1364,118 @@ function renderWhatsApp(page, npcId) {
   }).sort((a,b) => (b.last ? b.last.t : -1) - (a.last ? a.last.t : -1));
   app.innerHTML = `<div class="wa-shell"><header class="wa-top"><div class="wa-topline"><button class="wa-home-return" type="button" data-phone="home">‹ Celular</button><strong>WhatsApp</strong><div class="wa-top-actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span>⋮</span></div></div><div class="wa-tabs"><span class="active">CONVERSAS</span><span>STATUS</span><span>CHAMADAS</span></div></header><div class="wa-list">${contacts.map(({q,last,preview}) => `<button class="wa-contact" type="button" data-wa="chat" data-id="${esc(q.id)}"><span class="wa-avatar">${esc(q.name.slice(0,1).toUpperCase())}</span><span class="wa-contact-main"><span class="wa-contact-line"><b>${esc(q.name)}</b><small>${last ? waClock(last.t) : ''}</small></span><span class="wa-preview">${esc(preview)}</span></span></button>`).join('')}</div></div>`;
 }
-function waSendMessage() {
+let waRequestPending = false;
+function socialContextFor(q) {
+  const s = q.social || {};
+  return {
+    friendship: Number(s.friendship) || 0, trust: Number(s.trust) || 0,
+    intimacy: Number(s.intimacy) || 0, romance: Number(s.romance) || 0,
+    memories: Array.isArray(s.memories) ? s.memories.slice(-8) : []
+  };
+}
+function applySocialChanges(q, changes, memory) {
+  if (!q) return;
+  if (!q.social) q.social = { friendship:0, trust:0, intimacy:0, romance:0, lastInitiative:0, memories:[] };
+  ['friendship','trust','intimacy','romance'].forEach(k => {
+    const delta = Number(changes && changes[k]);
+    if (Number.isFinite(delta)) q.social[k] = clamp((Number(q.social[k]) || 0) + clamp(delta, -4, 4), 0, 100);
+  });
+  if (memory) {
+    q.social.memories = Array.isArray(q.social.memories) ? q.social.memories : [];
+    q.social.memories.push(String(memory).slice(0,180));
+    q.social.memories = q.social.memories.slice(-12);
+  }
+}
+async function requestWhatsAppAI(q, playerMessage, autonomous = false) {
+  const history = waMessagesFor(q.id).slice(-16).map(m => ({
+    speaker: m.from === 'player' ? G.player.name : q.name,
+    text: m.text, time: fmtDate(m.t) + ' ' + fmtTime(m.t)
+  }));
+  const presentNpcs = G.npcs.filter(n => n.locationId === G.world.locationId).map(n => ({
+    id:n.id, name:n.name, occupation:n.occ, present:true
+  }));
+  const response = await fetch('/.netlify/functions/game-ai', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      mode:'whatsapp', autonomous, message:playerMessage || '',
+      gameTime:fmtDate(G.time) + ' ' + fmtTime(G.time),
+      location:G.world.locationId,
+      player:{name:G.player.name, age:G.player.age, bio:G.player.bio, attributes:G.player.attrs},
+      npc:{id:q.id,name:q.name,occupation:q.occ,role:q.role,personality:q.personality,relationship:socialContextFor(q)},
+      npcs:presentNpcs,
+      recentScene:(G.world.sceneLog || []).slice(-8).map(e => ({kind:e.kind,text:e.text,time:fmtTime(e.t)})),
+      conversation:history
+    })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'A IA não conseguiu responder à mensagem.');
+  return data;
+}
+async function waSendMessage() {
   const input = $('#waInput');
   const text = input ? input.value.trim() : '';
   const q = npcOf(waActiveNpc);
-  if (!q || !text) return;
+  if (!q || !text || waRequestPending) return;
   waAddMessage(q.id, 'player', text);
   remember('Você enviou uma mensagem para ' + q.name + '.');
   commit();
+  waRequestPending = true;
   renderWhatsApp('chat', q.id);
+  const compose = $('#waCompose');
+  if (compose) compose.querySelector('input').disabled = true;
+  const messages = $('#waMessages');
+  if (messages) {
+    const typing = document.createElement('div');
+    typing.className = 'wa-typing'; typing.id = 'waTyping';
+    typing.textContent = q.name + ' está digitando…';
+    messages.appendChild(typing); messages.scrollTop = messages.scrollHeight;
+  }
+  try {
+    const data = await requestWhatsAppAI(q, text, false);
+    if (data.reply) waAddMessage(q.id, 'npc', data.reply);
+    applySocialChanges(q, data.relationshipChanges, data.memory);
+    commit();
+  } catch (error) {
+    toast(error.message || 'Falha ao enviar mensagem.', true);
+  } finally {
+    waRequestPending = false;
+    renderWhatsApp('chat', q.id);
+  }
+}
+async function maybeNpcInitiates(previousTime, elapsedMinutes) {
+  if (!G || elapsedMinutes < 45 || G.world.activeAction) return;
+  if (!Number.isFinite(G.lastSocialCheck)) G.lastSocialCheck = previousTime;
+  if (G.time - G.lastSocialCheck < 240) return;
+  G.lastSocialCheck = G.time;
+  G.npcs.forEach(q => {
+    if (!q.social) q.social = {
+      friendship: clamp(Number(q.rel) || 0, 0, 100), trust: clamp(Number(q.bond) || 0, 0, 100),
+      intimacy: 0, romance: 0, lastInitiative: 0, memories: []
+    };
+  });
+  const candidates = G.npcs.filter(q => {
+    if (!q || !q.id || !q.social) return false;
+    return G.time - (Number(q.social.lastInitiative) || 0) >= 360 &&
+      (q.social.friendship + q.social.trust + q.social.intimacy + q.social.romance >= 8);
+  });
+  if (!candidates.length || Math.random() > 0.32) { commit(); return; }
+  const q = candidates[Math.floor(Math.random() * candidates.length)];
+  q.social.lastInitiative = G.time;
+  commit();
+  try {
+    const data = await requestWhatsAppAI(q, '', true);
+    if (data.shouldMessage && data.reply) {
+      waAddMessage(q.id, 'npc', data.reply);
+      applySocialChanges(q, data.relationshipChanges, data.memory);
+      remember(q.name + ' enviou uma mensagem para Dante.');
+      commit();
+      if (!$('#phoneOverlay').hidden && waPage === 'list') renderWhatsApp('list');
+      if (!$('#phoneOverlay').hidden && waPage === 'chat' && waActiveNpc === q.id) renderWhatsApp('chat', q.id);
+      toast('Nova mensagem de ' + q.name + '.');
+    }
+  } catch (error) {
+    // Falhas em iniciativas espontâneas não interrompem o jogo.
+  }
 }
 
 /* ---------- Banco digital ---------- */
