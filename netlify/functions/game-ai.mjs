@@ -1,6 +1,4 @@
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const rateBuckets = new Map();
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 const responseSchema = {
   type: 'OBJECT',
@@ -49,6 +47,10 @@ function jsonResponse(statusCode, body) {
 
 function cleanText(value, max = 500) {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export default async (request) => {
@@ -127,31 +129,66 @@ export default async (request) => {
   };
 
   try {
-    const upstream = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemInstruction }] },
-        contents: [{ role: 'user', parts: [{ text: `Contexto atual do jogo (JSON):\n${JSON.stringify(context)}` }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          responseSchema,
-          maxOutputTokens: 900,
-          thinkingConfig: { thinkingLevel: 'LOW' }
-        }
-      })
+    const requestBody = JSON.stringify({
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      contents: [{ role: 'user', parts: [{ text: `Contexto atual do jogo (JSON):\n${JSON.stringify(context)}` }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema,
+        maxOutputTokens: 900,
+        thinkingConfig: { thinkingLevel: 'LOW' }
+      }
     });
 
-    const upstreamData = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) {
-      const message = upstreamData?.error?.message || 'O serviço Gemini recusou a solicitação.';
-      const status = upstream.status === 429 ? 429 : upstream.status === 400 ? 502 : 502;
-      return jsonResponse(status, { error: status === 429 ? 'Limite temporário da API Gemini atingido. Aguarde um pouco e tente novamente.' : `Erro na API Gemini: ${message.slice(0, 240)}` });
+    // Modelo principal e alternativa. Repetimos apenas erros temporários de capacidade/rede.
+    const models = [...new Set([
+      process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+      process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash-lite'
+    ])];
+    let upstream = null;
+    let upstreamData = {};
+    let lastStatus = 502;
+
+    for (const model of models) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+            body: requestBody
+          });
+          upstreamData = await upstream.json().catch(() => ({}));
+          if (upstream.ok) break;
+          lastStatus = upstream.status;
+          // Não repetir erros permanentes, como chave inválida ou modelo inexistente.
+          if (![429, 500, 502, 503, 504].includes(upstream.status)) break;
+        } catch {
+          upstream = null;
+          lastStatus = 502;
+        }
+
+        if (attempt < 1) {
+          const retryAfter = Number(upstream?.headers?.get('retry-after')) || 0;
+          await wait(Math.min(3000, Math.max(900 * (attempt + 1), retryAfter * 1000)));
+        }
+      }
+      if (upstream?.ok) break;
+      if (upstream && ![429, 500, 502, 503, 504].includes(upstream.status)) break;
     }
 
-    const text = upstreamData?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+    if (!upstream?.ok) {
+      const message = upstreamData?.error?.message || 'O serviço Gemini está temporariamente indisponível.';
+      const status = lastStatus === 429 ? 429 : 503;
+      return jsonResponse(status, {
+        error: status === 429
+          ? 'A API Gemini atingiu temporariamente o limite de solicitações. Aguarde um pouco e tente novamente.'
+          : `A IA está temporariamente indisponível após as tentativas automáticas. ${message.slice(0, 180)}`
+      });
+    }
+
+    const responseText = upstreamData?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
     let result;
-    try { result = JSON.parse(text); }
+    try { result = JSON.parse(responseText); }
     catch { return jsonResponse(502, { error: 'A IA retornou uma resposta em formato inesperado. Tente novamente.' }); }
 
     const presentIds = new Set(context.npcs.filter(n => n.present).map(n => n.id));
@@ -165,7 +202,7 @@ export default async (request) => {
       narration: cleanText(result.narration, 1200) || 'A atividade foi concluída.',
       npcReactions
     });
-  } catch (error) {
+  } catch {
     return jsonResponse(502, { error: 'Não foi possível conectar ao Gemini. Verifique a implantação da função e tente novamente.' });
   }
 };
