@@ -316,6 +316,24 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 #sceneEntryForm textarea{min-height:76px}
 @media(max-width:360px){.world-time{font-size:46px}.world-hero{padding:18px 16px}.world-vehicle{align-items:flex-start}}
 
+
+/* ---------- Refinamento visual: edição After Hours ---------- */
+:root{--gold:#b99a53;--gold-hi:#ead6a0;--gold-lo:#6e592f;--graphite:#141416;--graphite2:#1b1b1e;--line:#343236}
+body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#09090a 100%);letter-spacing:.005em}
+#game{background:transparent}
+.top{background:linear-gradient(180deg,rgba(15,15,16,.98),rgba(15,15,16,.88));border-bottom:1px solid #b99a5330;backdrop-filter:blur(16px)}
+.clock{font-variant-numeric:tabular-nums;letter-spacing:-.045em;text-shadow:0 0 28px #c4a35a24}
+.card{background:linear-gradient(145deg,rgba(31,30,29,.96),rgba(18,18,20,.98));border:1px solid #b99a5326;box-shadow:0 12px 34px #0003}
+.card h2,.card h3{letter-spacing:.01em}
+.btn{background:linear-gradient(135deg,#d6bd7d,#a98943);color:#15120b;border:1px solid #e8d49b;font-weight:650;box-shadow:0 5px 18px #0003}
+.btn.ghost{background:#1b1a18;color:var(--gold-hi);border-color:#67552f;box-shadow:none}
+.nav{background:rgba(10,10,11,.94);border-top:1px solid #b99a5333}
+.nav button{font-size:12px;letter-spacing:.015em}
+.nav button[aria-current="page"]{text-shadow:0 0 18px #d9b96a55}
+.entry,.scene-log-entry{line-height:1.65}
+#view{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}
+@media(min-width:481px){#game{max-width:480px;margin:0 auto;min-height:100dvh;border-left:1px solid #b99a531c;border-right:1px solid #b99a531c;box-shadow:0 0 80px #0008}}
+
 </style>
 </head>
 <body>
@@ -572,11 +590,14 @@ function advanceTime(mins) {
   const after = dayIndex(G.time);
   for (let d = before + 1; d <= after; d++) remember('Começa o dia ' + (d + 1) + '.', DAY0 + d * 1440);
   worldTick(t0, G.time);
-  if (G.world && G.world.activeAction && G.time >= G.world.activeAction.endTime) completeActiveAction();
-  const ok = commit(); renderGame();
+  const actionCompleted = !!(G.world && G.world.activeAction && G.time >= G.world.activeAction.endTime);
+  if (actionCompleted) completeActiveAction();
+  const ok = commit();
+  updateClockDisplay();
+  // A tela inteira só é reconstruída quando há uma mudança real de conteúdo.
+  if (after !== before || actionCompleted || G.nextEv > ev0) renderGame();
   if (G.nextEv > ev0) toast('Algo aconteceu. Veja no topo da tela.');
   if (!ok) toast('Atenção: não foi possível salvar o progresso.', true);
-  if (!G.world.activeAction && t0 !== G.time) { /* a atividade terminou neste avanço */ }
   return true;
 }
 function minutesUntil(hour) {
@@ -687,7 +708,7 @@ function normalizeWorld(w, t) {
   if (w.activeAction && typeof w.activeAction === 'object' && Number.isFinite(w.activeAction.endTime) && w.activeAction.endTime > (Number.isFinite(t) ? t : START)) {
     w.activeAction = {
       title: String(w.activeAction.title || 'Atividade em andamento').slice(0, 100),
-      narration: String(w.activeAction.narration || '').slice(0, 1200),
+      narration: String(w.activeAction.narration || '').slice(0, 2200),
       startTime: Number.isFinite(w.activeAction.startTime) ? w.activeAction.startTime : (Number.isFinite(t) ? t : START),
       endTime: Math.min(w.activeAction.endTime, (Number.isFinite(t) ? t : START) + 480),
       durationMinutes: clamp(Math.round(Number(w.activeAction.durationMinutes) || 1), 1, 480),
@@ -963,7 +984,7 @@ async function submitSceneToAI(action, speech) {
     if (G !== targetGame) return;
     const duration = clamp(Math.round(Number(data.durationMinutes) || 1), 1, 480);
     const title = String(data.activityTitle || 'Atividade de Dante').slice(0, 100);
-    const narration = String(data.narration || 'A atividade foi concluída.').slice(0, 1200);
+    const narration = String(data.narration || 'A atividade foi concluída.').slice(0, 2200);
     const reactions = Array.isArray(data.npcReactions) ? data.npcReactions.slice(0, 5).map(x => ({ npcId: String(x.npcId || '').slice(0, 40), text: String(x.text || '').slice(0, 500) })).filter(x => x.npcId && x.text && G.npcs.some(q => q.id === x.npcId && q.locationId === G.world.locationId)) : [];
     if (!addSceneEntries(action, speech)) throw new Error('Ação vazia.');
     G.world.activeAction = { title, narration, startTime: G.time, endTime: G.time + duration, durationMinutes: duration, npcReactions: reactions };
@@ -1152,12 +1173,16 @@ function renderTitle() {
   $('#storageWarn').hidden = storageOk;
   show('title');
 }
-function renderGame() {
-  $('#phoneLauncher').hidden = false;
-  updatePhoneClock();
+function updateClockDisplay() {
+  if (!G) return;
   $('#hClock').textContent = fmtTime(G.time);
   $('#hPeriod').textContent = period(G.time);
   $('#hDay').textContent = fmtShort(G.time);
+  updatePhoneClock();
+}
+function renderGame() {
+  $('#phoneLauncher').hidden = false;
+  updateClockDisplay();
   $('#nav').innerHTML = Object.keys(VIEWS).map(k =>
     `<button data-act="nav" data-v="${k}"${k === view ? ' aria-current="page"' : ''}>${VIEWS[k].label}</button>`).join('');
   $('#view').innerHTML = busyBannerHTML() + eventsHTML() + VIEWS[view].render();
