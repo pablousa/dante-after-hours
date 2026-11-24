@@ -172,6 +172,34 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 @media(min-width:481px){#phoneOverlay{background:#000e;padding:18px}}
 
 
+/* ---------- Mobilidade e cartão de crédito ---------- */
+.phone-app-icon.uber{background:#f5f5f5;color:#090909;font-size:29px;font-weight:800;letter-spacing:-.08em}
+.ride-app{min-height:100%;background:#f6f6f6;color:#161616;font-family:var(--sans);padding:18px 16px 30px}
+.ride-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 20px}
+.ride-brand{font-size:24px;font-weight:800;letter-spacing:-.08em;color:#111}
+.ride-head button{border:0;border-radius:50%;width:38px;height:38px;background:#e8e8e8;color:#111;font-size:19px}
+.ride-map{height:155px;border-radius:18px;background:linear-gradient(135deg,#dce4dd,#e9e9df);position:relative;overflow:hidden;margin-bottom:18px}
+.ride-map:before,.ride-map:after{content:"";position:absolute;background:#fff;opacity:.8;transform:rotate(-24deg)}
+.ride-map:before{width:140%;height:13px;top:58px;left:-15%}.ride-map:after{width:130%;height:10px;top:112px;left:-12%;transform:rotate(28deg)}
+.ride-map-pin{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-size:18px;border:4px solid #fff}
+.ride-label{font-size:12px;color:#777;font-weight:700;letter-spacing:.08em;margin:0 0 7px;text-transform:uppercase}
+.ride-field{margin:0 0 16px}.ride-field select{background:#fff;color:#111;border:1px solid #ddd;border-radius:12px;min-height:48px}
+.ride-options{background:#fff;border:1px solid #e2e2e2;border-radius:14px;padding:12px 14px;margin-bottom:16px}
+.ride-choice{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #eee;color:#222;font-size:14px}.ride-choice:first-child{border-top:0}
+.ride-choice input{width:18px;height:18px;accent-color:#111}.ride-choice small{display:block;color:#777;font-size:11px}
+.ride-price{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-top:1px solid #e6e6e6;font-size:14px}.ride-price strong{font-size:19px}
+.ride-primary{width:100%;min-height:50px;border:0;border-radius:12px;background:#111;color:#fff;font:700 15px var(--sans);margin-top:10px}.ride-primary:disabled{opacity:.4}
+.ride-note{font-size:11px;line-height:1.5;color:#777;margin-top:12px}.ride-status{background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:17px;margin:14px 0}
+.ride-status h4{font-size:18px;margin:0 0 6px}.ride-status p{font-size:13px;color:#666;margin:0}
+.ride-route{border-left:2px solid #111;margin:16px 0 16px 8px;padding:2px 0 2px 17px;font-size:13px}.ride-route div+div{margin-top:14px}
+.ride-tag{display:inline-block;border-radius:30px;background:#ededed;padding:5px 9px;font-size:11px;font-weight:700;margin-bottom:8px}
+.nu-card-visual{border-radius:18px;padding:18px;background:linear-gradient(135deg,#28242f,#09090d);color:#fff;margin-bottom:14px;min-height:155px;display:flex;flex-direction:column;justify-content:space-between}
+.nu-card-visual .chip{width:31px;height:23px;border:1px solid #c7bca8;border-radius:5px;opacity:.8}.nu-card-visual strong{font-size:17px;letter-spacing:.08em}
+.nu-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.nu-card-metric{background:#fff;border-radius:14px;padding:13px}
+.nu-card-metric span{display:block;font-size:11px;color:#777}.nu-card-metric b{display:block;font-size:17px;margin-top:4px;color:#211a29}
+.nu-score{display:flex;align-items:center;justify-content:space-between;gap:12px}.nu-score strong{font-size:25px;color:#6b00a7}
+.nu-invoice-item{padding:10px 0;border-top:1px solid #eee;font-size:12px;display:flex;justify-content:space-between;gap:10px}.nu-invoice-item:first-child{border-top:0}
+
 /* ---------- Banco digital: identidade violeta ---------- */
 .phone-app-icon.bank{background:linear-gradient(145deg,#9b35e8,#6a00b8);color:#fff}
 .phone-app-icon svg{width:28px;height:28px;display:block}
@@ -193,7 +221,7 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 .nu-balance{font-size:30px;line-height:1.2;font-weight:750;letter-spacing:-.055em;color:#241b2f;overflow-wrap:anywhere}
 .nu-eye{border:0;background:#f0eaf5;color:#6f00ad;border-radius:50%;width:38px;height:38px;display:grid;place-items:center}
 .nu-eye svg{width:19px;height:19px}
-.nu-shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:3px 13px 19px}
+.nu-shortcuts{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:3px 13px 19px}
 .nu-shortcut{border:0;background:transparent;color:#2a2132;display:flex;flex-direction:column;align-items:center;gap:8px;font:600 11px var(--sans);padding:4px 0;min-width:0}
 .nu-shortcut-icon{width:53px;height:53px;border-radius:50%;background:#e9e0f0;color:#7000aa;display:grid;place-items:center}
 .nu-shortcut-icon svg{width:23px;height:23px}
@@ -451,6 +479,7 @@ body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#0909
       <div class="phone-home-head"><strong>DANTE</strong><span id="phoneHomeDate"></span></div>
       <div class="phone-app-grid">
         <button class="phone-app" data-app="bank"><span class="phone-app-icon bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18L12 3 3 9Z"/><path d="M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18"/></svg></span><span>Banco</span></button>
+        <button class="phone-app" data-app="uber"><span class="phone-app-icon uber">U</span><span>Uber</span></button>
         <button class="phone-app" data-app="whatsapp"><span class="phone-app-icon whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L4 20l1.1-3.9a8.2 8.2 0 1 1 15.1-4.4Z"/><path d="M9 8.5c.3-.5.6-.5.9-.1l.8 1.2c.2.3.1.5-.1.8l-.5.6c.6 1.1 1.4 1.9 2.6 2.5l.6-.7c.2-.2.4-.3.7-.1l1.2.7c.4.2.4.5.2.9-.4.8-1.2 1.2-2.1 1.1-2.5-.4-5.4-3.2-5.7-5.7-.1-.5.3-1 .7-1.2Z"/></svg></span><span>WhatsApp</span></button>
         <button class="phone-app" data-app="settings"><span class="phone-app-icon settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1a1.7 1.7 0 1 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 1 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 1 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 1 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 1 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2V2a1.7 1.7 0 1 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 1 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 1 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/></svg></span><span>Ajustes</span></button>
         <button class="phone-app" data-app="notes"><span class="phone-app-icon notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span>Notas</span></button>
@@ -539,7 +568,7 @@ function grantStartingBalance(d) {
   return d;
 }
 function finBlank() {
-  return { wallet: 0, bank: 0, totIn: 0, totOut: 0, tx: [], rec: [], pend: [], nextTx: 1, nextRec: 1, nextPend: 1 };
+  return { wallet: 0, bank: 0, totIn: 0, totOut: 0, tx: [], rec: [], pend: [], nextTx: 1, nextRec: 1, nextPend: 1, card: { limit: 100000, invoice: 0, dueAt: null, overdue: false, score: 620, items: [], nextItem: 1 }, ride: null };
 }
 function migrate(d) {
   // v1 → v2: adiciona a economia (saldos zerados; nada é inventado).
@@ -553,6 +582,16 @@ function migrate(d) {
     d.tx = d.tx.filter(x => x && Number.isFinite(x.t) && Number.isSafeInteger(x.amt) && ['income', 'expense', 'transfer'].includes(x.type) && typeof x.desc === 'string' && typeof x.cat === 'string' && typeof x.acc === 'string')
       .map(x => Object.assign(x, { w: n(x.w), b: n(x.b), id: n(x.id) }));
     d.rec = []; d.pend = [];   // v0.3: despesas recorrentes manuais foram removidas
+    const card = d.card && typeof d.card === 'object' ? d.card : {};
+    d.card = {
+      limit: Math.max(100000, n(card.limit) || 100000), invoice: n(card.invoice),
+      dueAt: Number.isFinite(card.dueAt) ? card.dueAt : null, overdue: card.overdue === true,
+      score: clamp(Math.round(Number(card.score) || 620), 300, 1000),
+      items: Array.isArray(card.items) ? card.items.slice(-100).filter(x => x && Number.isSafeInteger(x.amount) && x.amount > 0 && Number.isFinite(x.t)).map(x => ({ id:n(x.id), title:String(x.title||'Compra no crédito').slice(0,100), amount:x.amount, t:x.t })) : [],
+      nextItem: Math.max(1, n(card.nextItem))
+    };
+    if (!Number.isFinite(d.card.dueAt)) d.card.dueAt = nextCardDueAt(d.time);
+    d.ride = d.ride && typeof d.ride === 'object' ? d.ride : null;
     d.npcs = (Array.isArray(d.npcs) ? d.npcs : []).filter(q => q && typeof q.id === 'string' && typeof q.name === 'string' && typeof q.occ === 'string');
     if (!d.npcs.length) d.npcs = JSON.parse(JSON.stringify(NPC_SEED));
     d.npcs.forEach(q => {
@@ -652,6 +691,8 @@ function advanceTime(mins) {
   }
   const t0 = G.time, before = dayIndex(G.time), ev0 = G.nextEv;
   G.time += mins;
+  processCardBilling(t0,G.time);
+  completeRideIfDue();
   const after = dayIndex(G.time);
   for (let d = before + 1; d <= after; d++) remember('Começa o dia ' + (d + 1) + '.', DAY0 + d * 1440);
   worldTick(t0, G.time);
@@ -721,6 +762,35 @@ function transferMoney(c, from, to, cat) {
   return finish(R(true, fmtUSD(c) + ': ' + ACC[from] + ' → ' + ACC[to] + '.'));
 }
 function getFinancialSummary() { return { wallet: G.wallet, bank: G.bank, total: G.wallet + G.bank, income: G.totIn, expense: G.totOut }; }
+function nextCardDueAt(t) {
+  const d=asDate(t); let y=d.getUTCFullYear(),m=d.getUTCMonth();
+  if(d.getUTCDate()>=15){m++;if(m>11){m=0;y++;}}
+  return Date.UTC(y,m,15)/60000;
+}
+function chargeCreditCard(amount,title) {
+  const c=G.card;
+  if(!validAmt(amount))return R(false,'Valor inválido.');
+  if(c.invoice+amount>c.limit)return R(false,'Limite do cartão insuficiente.');
+  c.invoice+=amount;if(!Number.isFinite(c.dueAt)||c.dueAt<G.time)c.dueAt=nextCardDueAt(G.time);
+  c.items=Array.isArray(c.items)?c.items:[];c.items.push({id:c.nextItem++,title:String(title).slice(0,100),amount,t:G.time});c.items=c.items.slice(-100);
+  remember('Compra no crédito: '+title+' · '+fmtUSD(amount)+'.');commit();return R(true,'Compra aprovada no crédito.');
+}
+function payCardInvoice() {
+  const c=G.card;if(!c||c.invoice<=0)return toast('Você não tem fatura em aberto.');
+  const amount=c.invoice;if(G.bank<amount)return toast('Saldo bancário insuficiente para pagar a fatura.',true);
+  const wasOverdue=c.overdue;const result=spendMoney(amount,'bank','Pagamento da fatura do cartão','Fatura do cartão');
+  if(!result.ok)return toast(result.msg,true);
+  c.invoice=0;c.overdue=false;c.dueAt=nextCardDueAt(G.time);
+  c.score=clamp(c.score+(wasOverdue?5:15),300,1000);
+  if(!wasOverdue)c.limit=Math.min(500000,c.limit+Math.max(2500,Math.round(c.limit*.05)));
+  remember(wasOverdue?'Fatura atrasada quitada. O score começou a se recuperar.':'Fatura do cartão paga no prazo. Seu histórico de crédito melhorou.');
+  commit();renderBankApp('cards');toast(wasOverdue?'Fatura paga. Seu score começou a se recuperar.':'Fatura paga. Seu limite e score foram atualizados.');
+}
+function processCardBilling(previousTime,currentTime) {
+  const c=G&&G.card;if(!c)return;if(!Number.isFinite(c.dueAt))c.dueAt=nextCardDueAt(previousTime);
+  if(c.dueAt<=currentTime){if(c.invoice>0&&!c.overdue){c.overdue=true;c.score=clamp(c.score-45,300,1000);remember('A fatura do cartão venceu sem pagamento. Seu score de crédito caiu.');}
+    while(c.dueAt<=currentTime){const due=asDate(c.dueAt);let y=due.getUTCFullYear(),m=due.getUTCMonth()+1;if(m>11){m=0;y++;}c.dueAt=Date.UTC(y,m,15)/60000;}commit();}
+}
 function getTransactionHistory(f) { return G.tx.filter(x => f === 'all' || x.type === f).sort((a, b) => b.t - a.t || b.id - a.id); }
 
 /* ---------- Mundo: pessoas, dívidas e acontecimentos ----------
@@ -1319,6 +1389,8 @@ function openPhoneApp(name) {
   app.hidden = false;
   if (name === 'bank') {
     renderBankApp('home');
+  } else if (name === 'uber') {
+    renderUber('home');
   } else if (name === 'whatsapp') {
     renderWhatsApp('list');
   } else if (name === 'settings') {
@@ -1330,6 +1402,41 @@ function openPhoneApp(name) {
   }
 }
 
+
+/* ---------- Uber: corridas, passageiros e pagamentos ---------- */
+let rideDraft={destination:'',payment:'cash',passengers:[]};
+const RIDE_DISTANCE={apartment_long_beach:{westside_auto_repair:24,long_beach_streets:4,rental_return:6},westside_auto_repair:{apartment_long_beach:24,long_beach_streets:23,rental_return:25},long_beach_streets:{apartment_long_beach:4,westside_auto_repair:23,rental_return:5},rental_return:{apartment_long_beach:6,westside_auto_repair:25,long_beach_streets:5}};
+function rideFare(origin,destination,count){const km=(RIDE_DISTANCE[origin]&&RIDE_DISTANCE[origin][destination])||8;return Math.round(350+km*115+Math.max(0,count-1)*125);}
+function rideDuration(origin,destination){const km=(RIDE_DISTANCE[origin]&&RIDE_DISTANCE[origin][destination])||8;return Math.max(5,Math.round(km*2.2));}
+function ridePeople(){return G.npcs.filter(q=>q.locationId===G.world.locationId);}
+function renderUber(page='home'){
+ const app=$('#phoneAppScreen');app.className='phone-app-screen';const ride=G.world.ride;
+ if(page==='trip'&&ride){const origin=WORLD_PLACES[ride.origin]||WORLD_PLACES.off_scene,dest=WORLD_PLACES[ride.destination]||WORLD_PLACES.off_scene,remaining=Math.max(0,ride.endTime-G.time);
+ app.innerHTML=`<div class="ride-app"><div class="ride-head"><button type="button" data-phone="home">‹</button><div class="ride-brand">Uber</div><span></span></div><div class="ride-map"><div class="ride-map-pin">🚘</div></div><span class="ride-tag">${remaining>0?'MOTORISTA A CAMINHO':'CHEGADA'}</span><div class="ride-status"><h4>${remaining>0?'Sua viagem está a caminho':'Viagem concluída'}</h4><p>${remaining>0?'O carro está levando você ao destino.':'Você chegou ao destino.'}</p></div><div class="ride-route"><div><b>Embarque</b><br>${esc(origin.name)}</div><div><b>Destino</b><br>${esc(dest.name)} · ${esc(dest.area)}</div></div><div class="ride-options"><div class="ride-price"><span>Motorista</span><b>${esc(ride.driver||'Motorista parceiro')}</b></div><div class="ride-price"><span>Previsão de chegada</span><b>${remaining} min</b></div><div class="ride-price"><span>Passageiros</span><b>${ride.passengers.length+1}</b></div><div class="ride-price"><span>Pagamento</span><b>${ride.payment==='cash'?'Dinheiro':ride.payment==='pix'?'Pix':'Cartão de crédito'}</b></div><div class="ride-price"><span>Total</span><strong>${fmtUSD(ride.fare)}</strong></div></div><button class="ride-primary" type="button" data-uber="home">Voltar ao início</button><p class="ride-note">A viagem avança junto com o relógio do jogo. Ao chegar, Dante e os acompanhantes selecionados serão movidos para o destino.</p></div>`;return;}
+ if(ride&&!ride.completed&&ride.endTime>G.time){renderUber('trip');return;}
+ const current=WORLD_PLACES[G.world.locationId]||WORLD_PLACES.off_scene;
+ const destinations=Object.entries(WORLD_PLACES).filter(([id])=>id!=='off_scene'&&id!==G.world.locationId).map(([id,p])=>`<option value="${id}" ${rideDraft.destination===id?'selected':''}>${esc(p.name)} · ${esc(p.area)}</option>`).join('');
+ const people=ridePeople(),selected=new Set(rideDraft.passengers||[]),pax=selected.size+1,dest=WORLD_PLACES[rideDraft.destination],fare=dest?rideFare(G.world.locationId,rideDraft.destination,pax):0;
+ const passengerHTML=people.length?people.map(q=>`<label class="ride-choice"><input type="checkbox" name="ridePassenger" value="${esc(q.id)}" ${selected.has(q.id)?'checked':''}><span><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></span></label>`).join(''):'<p class="ride-note">Nenhum acompanhante está neste local.</p>';
+ const pay=rideDraft.payment||'cash';
+ app.innerHTML=`<div class="ride-app"><div class="ride-head"><button type="button" data-phone="home">‹</button><div class="ride-brand">Uber</div><span></span></div><div class="ride-map"><div class="ride-map-pin">⌖</div></div>
+ <div class="ride-field"><div class="ride-label">Você está em</div><div style="font-weight:700;font-size:15px">${esc(current.name)}</div><div style="font-size:12px;color:#777">${esc(current.area)} · ${gameClock()}</div></div>
+ <form id="rideForm"><div class="ride-field"><label class="ride-label" for="rideDestination">Para onde vamos?</label><select id="rideDestination" required><option value="">Escolha o destino</option>${destinations}</select></div>
+ <div class="ride-field"><div class="ride-label">Quem vai com você?</div><div class="ride-options"><label class="ride-choice"><input type="radio" name="rideGroup" value="solo" ${selected.size===0?'checked':''}><span><b>Vou sozinho</b><small>Apenas Dante</small></span></label><label class="ride-choice"><input type="radio" name="rideGroup" value="companions" ${selected.size>0?'checked':''}><span><b>Levar pessoas deste local</b><small>Escolha quem vai acompanhar você</small></span></label><div id="rideCompanions" ${selected.size===0?'hidden':''}>${passengerHTML}</div></div></div>
+ <div class="ride-field"><div class="ride-label">Forma de pagamento</div><div class="ride-options"><label class="ride-choice"><input type="radio" name="ridePayment" value="cash" ${pay==='cash'?'checked':''}><span><b>Dinheiro</b><small>Carteira: ${fmtUSD(G.wallet)}</small></span></label><label class="ride-choice"><input type="radio" name="ridePayment" value="pix" ${pay==='pix'?'checked':''}><span><b>Pix</b><small>Conta: ${fmtUSD(G.bank)}</small></span></label><label class="ride-choice"><input type="radio" name="ridePayment" value="credit" ${pay==='credit'?'checked':''}><span><b>Cartão de crédito</b><small>Disponível: ${fmtUSD(Math.max(0,G.card.limit-G.card.invoice))}</small></span></label></div></div>
+ <div class="ride-price"><span>Estimativa da viagem</span><strong>${dest?fmtUSD(fare):'—'}</strong></div><button class="ride-primary" type="submit" ${!dest?'disabled':''}>Confirmar e chamar Uber</button></form><p class="ride-note">A estimativa considera distância e quantidade de passageiros. Os valores são simulados e fazem parte da economia do jogo.</p></div>`;
+}
+function requestRide(form){
+ const destination=$('#rideDestination').value;if(!destination||!WORLD_PLACES[destination]||destination===G.world.locationId)return toast('Escolha um destino válido.',true);
+ const group=form.querySelector('input[name="rideGroup"]:checked')?.value||'solo';const passengers=group==='companions'?[...form.querySelectorAll('input[name="ridePassenger"]:checked')].map(x=>x.value).filter(id=>ridePeople().some(q=>q.id===id)):[];
+ if(passengers.length>3)return toast('O carro comporta Dante e até três acompanhantes.',true);
+ const payment=form.querySelector('input[name="ridePayment"]:checked')?.value||'cash',fare=rideFare(G.world.locationId,destination,passengers.length+1),duration=rideDuration(G.world.locationId,destination);let result;
+ if(payment==='cash')result=spendMoney(fare,'wallet','Uber para '+WORLD_PLACES[destination].name,'Transporte');else if(payment==='pix')result=spendMoney(fare,'bank','Uber via Pix para '+WORLD_PLACES[destination].name,'Transporte');else result=chargeCreditCard(fare,'Uber para '+WORLD_PLACES[destination].name);
+ if(!result.ok)return toast(result.msg,true);
+ const drivers=['Alex','Jordan','Taylor','Morgan','Sam'];G.world.ride={origin:G.world.locationId,destination,passengers,fare,payment,driver:drivers[(G.time+fare)%drivers.length],startTime:G.time,endTime:G.time+duration,completed:false};
+ rideDraft={destination:'',payment:'cash',passengers:[]};remember('Você chamou um Uber para '+WORLD_PLACES[destination].name+'.');commit();renderUber('trip');toast('Motorista encontrado. Viagem iniciada.');
+}
+function completeRideIfDue(){const r=G?.world?.ride;if(!r||r.completed||G.time<r.endTime)return;G.world.locationId=r.destination;r.completed=true;r.completedAt=G.time;(r.passengers||[]).forEach(id=>{const q=npcOf(id);if(q)q.locationId=r.destination;});const place=WORLD_PLACES[r.destination]||WORLD_PLACES.off_scene;const msg='Dante chegou a '+place.name+(r.passengers?.length?' acompanhado de '+r.passengers.map(id=>npcOf(id)?.name).filter(Boolean).join(', '):'')+'.';if(!Array.isArray(G.world.sceneLog))G.world.sceneLog=[];G.world.sceneLog.push({id:G.world.nextSceneId++,kind:'narration',text:msg,t:G.time});remember(msg);commit();if(phonePage==='uber')renderUber('trip');else toast('Você chegou ao destino: '+place.name+'.');}
 
 /* ---------- WhatsApp: conversas persistentes com os NPCs ---------- */
 let waPage = 'list';
@@ -1524,11 +1631,21 @@ function renderBankApp(page) {
         <button class="nu-shortcut" type="button" data-bank-page="deposit"><span class="nu-shortcut-icon">${bankIcon('deposit')}</span><span>Depositar</span></button>
         <button class="nu-shortcut" type="button" data-bank-page="withdraw"><span class="nu-shortcut-icon">${bankIcon('withdraw')}</span><span>Retirar</span></button>
         <button class="nu-shortcut" type="button" data-bank-page="history"><span class="nu-shortcut-icon">${bankIcon('history')}</span><span>Extrato</span></button>
+        <button class="nu-shortcut" type="button" data-bank-page="cards"><span class="nu-shortcut-icon">${bankIcon('bank')}</span><span>Cartões</span></button>
       </div>
       <section class="nu-section"><h4 class="nu-section-title">Minha conta</h4><div class="nu-white-card"><div class="nu-account-row"><span>Saldo em conta</span><b>${bankMoney(f.bank)}</b></div><div class="nu-account-row"><span>Dinheiro na carteira</span><b>${bankMoney(f.wallet)}</b></div><div class="nu-account-row"><span>Patrimônio total</span><b>${bankMoney(f.total)}</b></div></div></section>
       <section class="nu-section"><div style="display:flex;justify-content:space-between;align-items:center"><h4 class="nu-section-title">Últimas movimentações</h4><button class="nu-link" type="button" data-bank-page="history">Ver extrato</button></div><div class="nu-white-card">${bankTxRows(recent)}</div></section>
       <div class="nu-foot">DANTE BANK · CONTA DIGITAL DO UNIVERSO DANTE</div>
     </div>`;
+  } else if (bankPage === 'cards') {
+    const c=G.card,available=Math.max(0,c.limit-c.invoice);
+    const items=c.items.slice().reverse().slice(0,12).map(x=>`<div class="nu-invoice-item"><span>${esc(x.title)}<br><small>${fmtShort(x.t)} · ${fmtTime(x.t)}</small></span><b>${fmtUSD(x.amount)}</b></div>`).join('')||'<div class="nu-empty">Nenhuma compra no crédito ainda.</div>';
+    app.innerHTML=`<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton()}<h2 class="nu-page-title">Meus cartões</h2><p class="nu-page-sub">Seu cartão acompanha seu histórico de pagamentos.</p>
+      <div class="nu-card-visual"><div style="display:flex;justify-content:space-between;align-items:center"><strong>DANTE BANK</strong><span>VISA</span></div><div class="chip"></div><div style="display:flex;justify-content:space-between;align-items:end"><span>CRÉDITO · ${esc(G.player.name.split(/\s+/)[0].toUpperCase())}</span><span>•••• 2048</span></div></div>
+      <div class="nu-card-grid"><div class="nu-card-metric"><span>Limite total</span><b>${fmtUSD(c.limit)}</b></div><div class="nu-card-metric"><span>Limite disponível</span><b>${fmtUSD(available)}</b></div><div class="nu-card-metric"><span>Fatura atual</span><b>${fmtUSD(c.invoice)}</b></div><div class="nu-card-metric"><span>Vencimento</span><b>${fmtShort(c.dueAt)}</b></div></div>
+      <div class="nu-white-card" style="margin-bottom:14px"><div class="nu-score"><div><div class="nu-label">Score de crédito</div><strong>${c.score}</strong><div class="nu-label">${c.overdue?'Fatura vencida':'Histórico em dia'}</div></div><span style="font-size:30px;color:#6b00a7">✦</span></div></div>
+      ${c.invoice>0?`<button class="nu-primary" type="button" data-bank-action="pay-card-invoice">Pagar fatura · ${fmtUSD(c.invoice)}</button>`:'<div class="nu-white-card" style="margin-bottom:14px"><b>Você está em dia.</b><div class="nu-label" style="margin-top:5px">Quando usar o cartão, suas compras aparecerão nesta fatura.</div></div>'}
+      <h4 class="nu-section-title" style="margin-top:18px">Compras recentes</h4><div class="nu-white-card">${items}</div><p class="nu-foot">Pagamentos integrais e pontuais podem aumentar gradualmente seu limite e score. Atrasos reduzem seu score.</p></div></div>`;
   } else if (bankPage === 'pix') {
     const opts = G.npcs.map(q => `<option value="${esc(q.id)}">${esc(q.name)} · ${esc(q.occ)}</option>`).join('');
     app.innerHTML = `<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton()}<h2 class="nu-page-title">Fazer Pix</h2><p class="nu-page-sub">Transfira dinheiro da sua conta para alguém do seu círculo.</p><div class="nu-white-card" style="margin-bottom:16px"><div class="nu-label">Saldo disponível</div><div style="font-size:21px;font-weight:800;margin-top:4px">${bankMoney(f.bank)}</div></div><div class="nu-field"><label for="nuPixTo">Quem vai receber?</label><select id="nuPixTo"><option value="">Selecione uma pessoa</option>${opts}</select></div><div class="nu-field"><label for="nuPixAmount">Valor da transferência</label><input id="nuPixAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div><div class="nu-field"><label for="nuPixDesc">Descrição (opcional)</label><input id="nuPixDesc" type="text" maxlength="48" placeholder="Ex.: acerto, ajuda, pagamento"></div><div class="nu-note">O Pix será descontado do saldo bancário e creditado ao dinheiro disponível do destinatário. Confira os dados antes de confirmar.</div><button class="nu-primary" type="button" data-bank-action="pix-submit">Continuar</button></div></div>`;
@@ -1614,6 +1731,8 @@ document.addEventListener('click', ev => {
     else if (waButton.dataset.wa === 'chat') renderWhatsApp('chat', waButton.dataset.id);
     return;
   }
+  const uberButton=ev.target.closest('[data-uber]');
+  if(uberButton){if(uberButton.dataset.uber==='home')renderUber('home');return;}
   const bankPageButton = ev.target.closest('[data-bank-page]');
   if (bankPageButton) { renderBankApp(bankPageButton.dataset.bankPage); return; }
   const bankFilterButton = ev.target.closest('[data-bank-filter]');
@@ -1626,6 +1745,7 @@ document.addEventListener('click', ev => {
     else if (action === 'pix-confirm') bankConfirmPix();
     else if (action === 'deposit-submit') bankMoveMoney('deposit');
     else if (action === 'withdraw-submit') bankMoveMoney('withdraw');
+    else if (action === 'pay-card-invoice') payCardInvoice();
     return;
   }
 });
@@ -1672,12 +1792,24 @@ document.addEventListener('submit', ev => {
     ev.preventDefault();
     if (G && G.world && G.world.activeAction) { toast('Dante está ocupado até concluir a atividade.', true); return; }
     waSendMessage();
+  } else if (ev.target && ev.target.id === 'rideForm') {
+    ev.preventDefault();
+    if(G&&G.world&&G.world.activeAction){toast('Dante está ocupado até concluir a atividade.',true);return;}
+    requestRide(ev.target);
   } else if (ev.target && ev.target.id === 'sceneEntryForm') {
     ev.preventDefault();
     const message = $('#sceneMessage').value;
     if (!message.trim()) { toast('Escreva o que Dante faz ou diz.', true); return; }
     submitSceneToAI(message);
   }
+});
+
+document.addEventListener('change',ev=>{
+ if(ev.target&&(ev.target.name==='rideGroup'||ev.target.name==='ridePassenger'||ev.target.name==='ridePayment'||ev.target.id==='rideDestination')){
+  const form=$('#rideForm');if(!form)return;const group=form.querySelector('input[name="rideGroup"]:checked')?.value||'solo';const box=$('#rideCompanions');if(box)box.hidden=group!=='companions';
+  const selected=[...form.querySelectorAll('input[name="ridePassenger"]:checked')].map(x=>x.value);rideDraft={destination:$('#rideDestination')?.value||'',payment:form.querySelector('input[name="ridePayment"]:checked')?.value||'cash',passengers:selected};
+  const dest=rideDraft.destination,price=form.querySelector('.ride-price strong'),count=group==='companions'?selected.length+1:1;if(price)price.textContent=dest?fmtUSD(rideFare(G.world.locationId,dest,count)):'—';const btn=form.querySelector('.ride-primary');if(btn)btn.disabled=!dest;
+ }
 });
 
 document.addEventListener('keydown', ev => {
