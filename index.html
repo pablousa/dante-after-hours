@@ -31,7 +31,7 @@ p{margin:0 0 12px}
 .btn.ghost{background:transparent;color:var(--gold-hi);border-color:var(--gold-lo)}
 .btn.danger{background:transparent;color:var(--danger);border-color:#5a2c26}
 .btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
-.btn:focus-visible,.nav button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+.btn:focus-visible,.nav button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
 .stack>*+*{margin-top:12px}
 
 /* Tela inicial */
@@ -50,7 +50,7 @@ p{margin:0 0 12px}
 .card{background:var(--graphite);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
 .card.dim{background:transparent;border-style:dashed}
 label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
-input,textarea{width:100%;background:var(--black);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:16px var(--sans)}
+input,textarea,select{width:100%;background:var(--black);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:16px var(--sans)}
 textarea{resize:none;min-height:84px}
 .field{margin-bottom:16px}
 .err{color:var(--danger);font-size:14px;min-height:20px;margin:4px 0 0}
@@ -91,6 +91,22 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 .nav button{flex:1;min-height:56px;background:none;border:0;color:var(--muted);font:500 14px var(--sans);cursor:pointer;border-top:2px solid transparent;touch-action:manipulation}
 .nav button[aria-current="page"]{color:var(--gold-hi);border-top-color:var(--gold)}
 .save{font-size:13px;color:var(--muted)}
+.seg{display:flex;gap:6px;margin-bottom:14px}
+.seg button{flex:1;min-height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font:500 14px var(--sans);cursor:pointer;touch-action:manipulation}
+.seg button[aria-pressed="true"]{color:var(--gold-hi);border-color:var(--gold);background:var(--graphite)}
+.bal{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+.bal b{display:block;font-family:var(--serif);font-weight:400;font-size:24px;color:var(--gold-hi);overflow-wrap:anywhere}
+.gold{color:var(--gold-hi)}
+.tx{padding:12px 0;border-top:1px solid var(--line)}.tx:first-child{border-top:0}
+.tl{display:flex;justify-content:space-between;gap:12px}
+.amt{font-weight:600;white-space:nowrap}.amt.income{color:#8fbf7a}.amt.expense{color:var(--danger)}.amt.transfer{color:var(--gold-hi)}
+.crow{grid-column:1/-1;display:flex;gap:8px}.crow input{flex:1;min-width:0}.crow select{width:auto}.crow .btn{width:auto;min-height:48px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ev{border-color:var(--gold-lo);background:linear-gradient(180deg,#1b1810,var(--graphite))}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);max-width:448px;margin:0 auto;z-index:20;background:var(--graphite2);border:1px solid var(--gold-lo);border-radius:12px;padding:12px 16px;font-size:15px;text-align:center}
+#toast.bad{border-color:var(--danger)}
+#modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:24px}
+#modal .box{background:var(--graphite);border:1px solid var(--gold-lo);border-radius:16px;padding:20px;max-width:380px;width:100%}
 </style>
 </head>
 <body>
@@ -141,10 +157,13 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
   <nav class="nav" aria-label="Navegação principal"><div id="nav"></div></nav>
 </section>
 
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<div id="modal" role="dialog" aria-modal="true" hidden><div class="box"><p id="mText"></p><div class="row2"><button class="btn ghost" data-act="no">Cancelar</button><button class="btn" id="mYes" data-act="yes">Confirmar</button></div></div></div>
+
 <script>
 'use strict';
 /* ==========================================================
-   DANTE — AFTER HOURS  ·  v0.1
+   DANTE — AFTER HOURS  ·  v0.3
    Organização: Config → Util → Tempo → Estado/Salvamento →
    Ações do jogo → Views (registro) → Interface → Início
    Para criar um sistema novo: adicione um item em VIEWS e
@@ -153,7 +172,7 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 
 /* ---------- Config ---------- */
 const SAVE_KEY = 'dante_after_hours_save';
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 const MAX_ATTR = 5, POOL = 10;
 const ATTRS = [
   {id:'direcao',  nome:'Direção',   desc:'Controle do carro quando o ritmo aperta.'},
@@ -162,7 +181,7 @@ const ATTRS = [
   {id:'intelecto',nome:'Intelecto', desc:'Ler situações, números e pessoas.'},
   {id:'frieza',   nome:'Frieza',    desc:'Manter a cabeça fria sob pressão.'}
 ];
-const PLANNED = ['Dinheiro e banco','Empregos e atividades','Garagem e carros','Locais e deslocamentos','Pessoas e reputação'];
+const PLANNED = ['Empregos fixos e salários','Garagem e carros','Locais e deslocamentos'];
 
 /* ---------- Util ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -191,10 +210,36 @@ let draft = null;        // personagem em criação
 try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch (e) { storageOk = false; }
 
 function newGame(player) {
-  return { v: SAVE_VERSION, player, time: START, diary: [], created: Date.now() };
+  return migrate(Object.assign({ v: SAVE_VERSION, player, time: START, diary: [], created: Date.now() }, finBlank()));
+}
+function finBlank() {
+  return { wallet: 0, bank: 0, totIn: 0, totOut: 0, tx: [], rec: [], pend: [], nextTx: 1, nextRec: 1, nextPend: 1 };
 }
 function migrate(d) {
-  // Futuras versões: converta aqui saves antigos antes de devolver.
+  // v1 → v2: adiciona a economia (saldos zerados; nada é inventado).
+  if (!d || typeof d !== 'object') return d;
+  if (d.v === 1) d.v = 2;
+  if (d.v === 2) {
+    const n = x => (Number.isSafeInteger(x) && x >= 0 ? x : 0);
+    const f = finBlank();
+    ['wallet', 'bank', 'totIn', 'totOut'].forEach(k => { d[k] = n(d[k]); });
+    ['tx', 'rec', 'pend'].forEach(k => { if (!Array.isArray(d[k])) d[k] = f[k]; });
+    d.tx = d.tx.filter(x => x && Number.isFinite(x.t) && Number.isSafeInteger(x.amt) && ['income', 'expense', 'transfer'].includes(x.type) && typeof x.desc === 'string' && typeof x.cat === 'string' && typeof x.acc === 'string')
+      .map(x => Object.assign(x, { w: n(x.w), b: n(x.b), id: n(x.id) }));
+    d.rec = []; d.pend = [];   // v0.3: despesas recorrentes manuais foram removidas
+    d.npcs = (Array.isArray(d.npcs) ? d.npcs : []).filter(q => q && typeof q.id === 'string' && typeof q.name === 'string' && typeof q.occ === 'string');
+    if (!d.npcs.length) d.npcs = JSON.parse(JSON.stringify(NPC_SEED));
+    d.npcs.forEach(q => { q.cash = n(q.cash); q.income = n(q.income); q.bond = clamp(Number(q.bond) || 0, 0, 100); q.gen = clamp(Number(q.gen) || 0, 0, 100); q.rel = clamp(Number(q.rel) || 0, 0, 100); q.cd = Number(q.cd) || 0; });
+    d.debts = (Array.isArray(d.debts) ? d.debts : []).filter(x => x && Number.isSafeInteger(x.amt) && x.amt > 0 && ['owe', 'owed'].includes(x.dir) && Number.isFinite(x.due) && d.npcs.some(q => q.id === x.npc)).map(x => Object.assign(x, { id: n(x.id), evt: !!x.evt }));
+    d.events = (Array.isArray(d.events) ? d.events : []).filter(x => x && typeof x.type === 'string' && typeof x.txt === 'string' && Number.isFinite(x.t) && (!x.debt || d.debts.some(y => y.id === x.debt)) && (!x.npc || d.npcs.some(q => q.id === x.npc)));
+    d.nextDebt = Math.max(n(d.nextDebt), d.debts.reduce((m, x) => Math.max(m, x.id), 0) + 1);
+    d.nextEv = Math.max(n(d.nextEv), d.events.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1);
+    d.seed = Number.isInteger(d.seed) ? d.seed : (Date.now() & 0x7fffffff);
+    d.lastMeal = Number.isInteger(d.lastMeal) ? d.lastMeal : -1;
+    d.nextTx = Math.max(n(d.nextTx), d.tx.reduce((m, x) => Math.max(m, x.id), 0) + 1);
+    d.nextRec = Math.max(n(d.nextRec), d.rec.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1);
+    d.nextPend = Math.max(n(d.nextPend), d.pend.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1);
+  }
   return d;
 }
 function validSave(d) {
@@ -220,6 +265,7 @@ function persist() {
 function commit() {            // chamada após toda mudança de estado
   const ok = persist();
   $('#hSave').textContent = ok ? 'Salvo automaticamente' : 'Progresso não está sendo salvo';
+  return ok;
 }
 
 /* ---------- Ações do jogo ---------- */
@@ -227,19 +273,295 @@ function remember(text, t) {
   G.diary.push({ t: t === undefined ? G.time : t, text });
   if (G.diary.length > 500) G.diary.shift();
 }
-function advance(mins) {
-  const before = dayIndex(G.time);
+function advanceTime(mins) {
+  if (!Number.isInteger(mins) || mins <= 0 || mins > 44640) return false;
+  const t0 = G.time, before = dayIndex(G.time), ev0 = G.nextEv;
   G.time += mins;
   const after = dayIndex(G.time);
   for (let d = before + 1; d <= after; d++) remember('Começa o dia ' + (d + 1) + '.', DAY0 + d * 1440);
-  commit(); renderGame();
+  worldTick(t0, G.time);
+  const ok = commit(); renderGame();
+  if (G.nextEv > ev0) toast('Algo aconteceu. Veja no topo da tela.');
+  if (!ok) toast('Atenção: não foi possível salvar o progresso.', true);
+  return true;
 }
 function minutesUntil(hour) {
   const m = ((G.time % 1440) + 1440) % 1440, target = hour * 60;
   return target > m ? target - m : 1440 - m + target;
 }
 
+/* ---------- Avisos internos ---------- */
+let toastT = null, confirmCb = null;
+function toast(msg, bad) {
+  const el = $('#toast'); el.textContent = msg; el.className = bad ? 'bad' : ''; el.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3500);
+}
+function askConfirm(text, cb) { $('#mText').textContent = text; confirmCb = cb; $('#modal').hidden = false; $('#mYes').focus(); }
+
+/* ---------- Economia ----------
+   Fonte única da verdade: G.wallet e G.bank, em CENTAVOS (inteiros).
+   A interface nunca altera saldos: só chama addMoney / spendMoney / transferMoney. */
+const ACC = { wallet: 'Carteira', bank: 'Banco' };
+const MAX_TX = 1000, MAX_CENTS = 99999999999;
+const R = (ok, msg) => ({ ok, msg });
+const fmtUSD = c => 'US$ ' + Math.floor(c / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + pad(c % 100);
+const accName = a => a.split('>').map(x => ACC[x]).join(' → ');
+function parseMoney(str) {
+  const m = /^(\d{1,9})(?:[.,](\d{1,2}))?$/.exec(String(str).trim());
+  if (!m) return NaN;
+  const c = Number(m[1]) * 100 + Number((m[2] || '0').padEnd(2, '0'));
+  return c > 0 && c <= MAX_CENTS ? c : NaN;
+}
+const validAmt = c => Number.isSafeInteger(c) && c > 0 && c <= MAX_CENTS;
+function logTx(o) {
+  G.tx.push({ id: G.nextTx++, t: o.t === undefined ? G.time : o.t, type: o.type, cat: o.cat, desc: o.desc, amt: o.amt, acc: o.acc, w: G.wallet, b: G.bank });
+  if (G.tx.length > MAX_TX) G.tx.shift();
+  if (!LOANCATS.has(o.cat)) { if (o.type === 'income') G.totIn += o.amt; else if (o.type === 'expense') G.totOut += o.amt; }
+}
+const finish = r => { if (!commit()) r.msg += ' Atenção: não foi possível salvar.'; return r; };
+function addMoney(c, acc, desc, cat, t) {
+  if (!ACC[acc] || !validAmt(c)) return R(false, 'Valor inválido.');
+  if (G[acc] + c > MAX_CENTS) return R(false, 'Esse valor ultrapassa o saldo máximo.');
+  G[acc] += c; logTx({ type: 'income', cat: cat || 'Recebimento', desc: desc || 'Recebimento', amt: c, acc, t });
+  return finish(R(true, '+' + fmtUSD(c) + ' em ' + ACC[acc].toLowerCase() + '.'));
+}
+function spendMoney(c, acc, desc, cat, t) {
+  if (!ACC[acc] || !validAmt(c)) return R(false, 'Valor inválido.');
+  if (G[acc] < c) return R(false, 'Saldo insuficiente: ' + ACC[acc].toLowerCase() + ' tem ' + fmtUSD(G[acc]) + '.');
+  G[acc] -= c; logTx({ type: 'expense', cat: cat || 'Despesa', desc: desc || 'Despesa', amt: c, acc, t });
+  return finish(R(true, '−' + fmtUSD(c) + ' de ' + ACC[acc].toLowerCase() + '.'));
+}
+function transferMoney(c, from, to, cat) {
+  if (!ACC[from] || !ACC[to] || from === to || !validAmt(c)) return R(false, 'Transferência inválida.');
+  if (G[from] < c) return R(false, 'Saldo insuficiente: ' + ACC[from].toLowerCase() + ' tem ' + fmtUSD(G[from]) + '.');
+  if (G[to] + c > MAX_CENTS) return R(false, 'Esse valor ultrapassa o saldo máximo.');
+  G[from] -= c; G[to] += c;
+  logTx({ type: 'transfer', cat: cat || 'Transferência', desc: ACC[from] + ' → ' + ACC[to], amt: c, acc: from + '>' + to });
+  return finish(R(true, fmtUSD(c) + ': ' + ACC[from] + ' → ' + ACC[to] + '.'));
+}
+function getFinancialSummary() { return { wallet: G.wallet, bank: G.bank, total: G.wallet + G.bank, income: G.totIn, expense: G.totOut }; }
+function getTransactionHistory(f) { return G.tx.filter(x => f === 'all' || x.type === f).sort((a, b) => b.t - a.t || b.id - a.id); }
+
+/* ---------- Mundo: pessoas, dívidas e acontecimentos ----------
+   Nada aqui mexe em saldo diretamente: tudo passa por addMoney / spendMoney / transferMoney. */
+const LOANCATS = new Set(['Empréstimo', 'Empréstimo concedido', 'Dívida paga', 'Dívida recebida']);  // não contam como receita/despesa
+const NPC_SEED = [
+  { id: 'marco', name: 'Marco', occ: 'Mecânico', cash: 21000, income: 42000, bond: 55, gen: 55, rel: 60, gigs: true },
+  { id: 'lia', name: 'Lia', occ: 'Bartender', cash: 9000, income: 38000, bond: 45, gen: 70, rel: 40 },
+  { id: 'vega', name: 'Sr. Vega', occ: 'Dono de oficina', cash: 120000, income: 90000, bond: 25, gen: 30, rel: 92, gigs: true }
+];
+const BILLS = ['O carregador do seu celular parou de funcionar.', 'A conta de internet chegou mais alta que o normal.', 'A tela do seu celular rachou e precisa de conserto.'];
+const npcOf = id => G.npcs.find(q => q.id === id);
+const addBond = (q, d) => { q.bond = clamp(q.bond + d, 0, 100); };
+const bondWord = b => b >= 75 ? 'Muito próximo' : b >= 50 ? 'Amigo' : b >= 30 ? 'Conhecido' : b >= 15 ? 'Distante' : 'Estremecido';
+const myFunds = () => G.wallet + G.bank;
+const canPay = c => G.wallet >= c || G.bank >= c;
+function rnd() {   // gerador determinístico guardado no save: recarregar a página não muda o destino
+  G.seed = (G.seed + 0x6D2B79F5) | 0; let t = G.seed;
+  t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const pick = a => a[Math.floor(rnd() * a.length)];
+function nextWeekday(t, wd) { const cur = asDate(t).getUTCDay(); let k = (wd - cur + 7) % 7; if (k === 0) k = 7; return Math.floor(t / 1440) * 1440 + k * 1440 + 1439; }
+function payAuto(c, desc, cat) {   // dinheiro vivo primeiro; se não cobrir, o banco
+  const acc = G.wallet >= c ? 'wallet' : G.bank >= c ? 'bank' : null;
+  return acc ? spendMoney(c, acc, desc, cat) : R(false, 'Saldo insuficiente.');
+}
+function lendMoney(q, c, due) {      // o jogador empresta a q
+  const r = payAuto(c, 'Empréstimo para ' + q.name, 'Empréstimo concedido'); if (!r.ok) return r;
+  q.cash += c; G.debts.push({ id: G.nextDebt++, npc: q.id, dir: 'owed', amt: c, due, t0: G.time, evt: false });
+  remember('Você emprestou ' + fmtUSD(c) + ' a ' + q.name + ', para receber até ' + fmtShort(due) + '.'); commit(); return r;
+}
+function borrowMoney(q, c, due) {    // o jogador toma emprestado de q
+  if (!validAmt(c) || q.cash < c) return R(false, q.name + ' não tem esse valor.');
+  const r = addMoney(c, 'wallet', 'Empréstimo de ' + q.name, 'Empréstimo'); if (!r.ok) return r;
+  q.cash -= c; G.debts.push({ id: G.nextDebt++, npc: q.id, dir: 'owe', amt: c, due, t0: G.time, evt: false });
+  remember('Você pegou ' + fmtUSD(c) + ' emprestados com ' + q.name + ', para pagar até ' + fmtShort(due) + '.'); commit(); return r;
+}
+function payDebt(id, c) {            // o jogador paga (parte de) uma dívida
+  const d = G.debts.find(x => x.id === id && x.dir === 'owe'); if (!d) return R(false, 'Dívida não encontrada.');
+  const q = npcOf(d.npc); c = Math.min(c, d.amt); if (!validAmt(c)) return R(false, 'Valor inválido.');
+  const r = payAuto(c, 'Pagamento a ' + q.name, 'Dívida paga'); if (!r.ok) return r;
+  q.cash += c; d.amt -= c; d.evt = false;
+  if (d.amt === 0) { G.debts = G.debts.filter(x => x !== d); addBond(q, 3); remember('Você quitou a dívida com ' + q.name + '.'); }
+  commit(); return r;
+}
+function collectDebt(d, t) {         // q devolve ao jogador, se puder
+  const q = npcOf(d.npc); if (q.cash < d.amt) return false;
+  if (!addMoney(d.amt, 'wallet', 'Devolução de ' + q.name, 'Dívida recebida', t).ok) return false;
+  q.cash -= d.amt; G.debts = G.debts.filter(x => x !== d); addBond(q, 2);
+  remember(q.name + ' devolveu ' + fmtUSD(d.amt) + '.', t); commit(); return true;
+}
+function pushEv(o, t) { G.events.push(Object.assign({ id: G.nextEv++, t }, o)); }
+function dueDebt(d, t) {
+  const q = npcOf(d.npc);
+  if (d.dir === 'owe') { d.evt = true; pushEv({ type: 'collect', npc: q.id, debt: d.id, txt: q.name + ' lembra da dívida de ' + fmtUSD(d.amt) + ', que venceu em ' + fmtShort(d.due) + '.' }, t); return; }
+  const amt = d.amt;
+  if (q.cash >= amt && rnd() < q.rel / 100 + 0.1) { if (collectDebt(d, t)) pushEv({ type: 'info', npc: q.id, txt: q.name + ' devolveu ' + fmtUSD(amt) + ' do empréstimo.' }, t); }
+  else if (rnd() < 0.6) { d.evt = true; pushEv({ type: 'extend', npc: q.id, debt: d.id, txt: q.name + ' pede mais uma semana para devolver ' + fmtUSD(amt) + '.' }, t); }
+  else { d.due = t + 2880; addBond(q, -1); }
+}
+function expireEv(e, t) { const q = e.npc && npcOf(e.npc); if (e.type === 'ask' && q) { addBond(q, -1); remember('Você deixou ' + q.name + ' sem resposta sobre o empréstimo.', t); } }
+function worldHour(t) {
+  const d = asDate(t), h = d.getUTCHours(), wd = d.getUTCDay();
+  if (wd === 5 && h === 18) G.npcs.forEach(q => { q.cash = Math.max(0, q.cash + q.income - Math.round(q.income * (0.55 + rnd() * 0.5))); });
+  G.events = G.events.filter(e => { if (e.exp && e.exp <= t) { expireEv(e, t); return false; } return true; });
+  if (h === 12) G.debts.slice().forEach(x => { if (x.due <= t && !x.evt) dueDebt(x, t); });
+  const slot = dayIndex(t) * 2 + (h === 20 ? 1 : 0);
+  if ((h === 13 || h === 20) && G.lastMeal !== slot) { G.lastMeal = slot; pushEv({ type: 'meal', exp: t + 240, txt: h === 13 ? 'É hora do almoço.' : 'É hora do jantar.' }, t); }
+  if (h < 9 || h > 22 || G.events.filter(e => e.type !== 'info' && e.type !== 'meal').length >= 2) return;
+  if (rnd() < 0.006 && !G.events.some(e => e.type === 'bill')) pushEv({ type: 'bill', amt: pick([1800, 2500, 3500, 6000]), exp: t + 4320, txt: pick(BILLS) }, t);
+  for (const q of G.npcs) {
+    if (q.cd > t || G.events.some(e => e.npc === q.id) || G.debts.some(x => x.npc === q.id)) continue;
+    const x = rnd();
+    if (q.cash < 12000 && q.bond >= 25 && x < 0.04) {
+      const c = pick([2000, 3000, 5000, 8000]), due = nextWeekday(t, 5);
+      pushEv({ type: 'ask', npc: q.id, amt: c, due, exp: t + 1440, txt: q.name + ' está apertado até receber. Pergunta se você pode emprestar ' + fmtUSD(c) + ' e promete devolver até ' + fmtShort(due) + '.' }, t); q.cd = t + 2160;
+    } else if (myFunds() < 2000 && q.cash >= 6000 && q.gen >= 40 && q.bond >= 35 && x < 0.06) {
+      const c = Math.min(pick([2000, 3000, 5000]), Math.floor(q.cash / 200) * 100);
+      pushEv({ type: 'offer', npc: q.id, amt: c, due: t + 14 * 1440, exp: t + 2880, txt: q.name + ' percebeu que o dinheiro anda curto e oferece emprestar ' + fmtUSD(c) + ', para você devolver em duas semanas.' }, t); q.cd = t + 2160;
+    } else if (q.gigs && wd >= 1 && wd <= 6 && h >= 9 && h <= 18 && q.cash >= 3500 && x < 0.05) {
+      const dur = pick([90, 120, 180]), pay = Math.min(pick([3500, 5000, 7500, 9000]), q.cash);
+      pushEv({ type: 'gig', npc: q.id, dur, amt: pay, exp: t + 720, txt: q.name + ' tem um serviço para hoje: cerca de ' + dur / 60 + ' h de trabalho por ' + fmtUSD(pay) + '.' }, t); q.cd = t + 2160;
+    }
+  }
+}
+function worldTick(t0, t1) { for (let t = Math.floor(t0 / 60) * 60 + 60, g = 0; t <= t1 && g < 800; t += 60, g++) worldHour(t); }
+
+/* Acontecimentos: escolhas do jogador, resolvidas pelo motor */
+const half = c => Math.floor(c / 200) * 100;
+function evChoices(e) {
+  const dis = c => !canPay(c);
+  switch (e.type) {
+    case 'ask': return [['yes', 'Emprestar ' + fmtUSD(e.amt), dis(e.amt)], ['half', 'Oferecer ' + fmtUSD(half(e.amt)), dis(half(e.amt))], ['no', 'Recusar']];
+    case 'offer': return [['yes', 'Aceitar ' + fmtUSD(e.amt)], ['no', 'Recusar']];
+    case 'gig': return [['yes', 'Aceitar (' + e.dur / 60 + ' h)'], ['no', 'Recusar']];
+    case 'meal': return [['a', 'Algo simples · ' + fmtUSD(800), dis(800)], ['b', 'Comer bem · ' + fmtUSD(1800), dis(1800)], ['skip', 'Pular']];
+    case 'bill': return [['pay', 'Pagar ' + fmtUSD(e.amt), dis(e.amt)], ['skip', 'Deixar para lá']];
+    case 'collect': { const d = G.debts.find(x => x.id === e.debt); return [['pay', 'Pagar ' + fmtUSD(d ? d.amt : 0), !d || dis(d.amt)], ['wait', 'Pedir mais 7 dias'], ['skip', 'Ignorar']]; }
+    case 'extend': return [['grant', 'Dar mais 7 dias'], ['now', 'Cobrar agora']];
+    default: return [['ok', 'Ok']];
+  }
+}
+function eventsHTML() {
+  return G.events.slice().sort((a, b) => a.t - b.t).map(e => {
+    const q = e.npc && npcOf(e.npc);
+    const btns = evChoices(e).map(([k, l, off], i) => `<button class="btn${i ? ' ghost' : ''}" data-act="ev" data-id="${e.id}" data-k="${k}"${off ? ' disabled' : ''}>${esc(l)}</button>`).join('');
+    const other = e.type === 'ask' ? `<div class="crow"><input id="cv${e.id}" inputmode="decimal" placeholder="Outro valor (US$)" aria-label="Outro valor"><button class="btn ghost" data-act="ev" data-id="${e.id}" data-k="other">Oferecer</button></div>` : '';
+    return `<section class="card ev"><div class="small muted">${q ? esc(q.name) + ' · ' : ''}${fmtTime(e.t)}</div><p style="margin:6px 0 14px">${esc(e.txt)}</p><div class="stack">${btns}${other}</div></section>`;
+  }).join('');
+}
+function resolveEv(id, k) {
+  const e = G.events.find(x => x.id === id); if (!e) return;
+  const q = e.npc ? npcOf(e.npc) : null, d = e.debt ? G.debts.find(x => x.id === e.debt) : null, now = G.time;
+  let msg = '', bad = false, keep = false;
+  const fin = r => { msg = r.msg; bad = !r.ok; keep = !r.ok; };
+  if (e.type === 'ask') {
+    if (k === 'no') { addBond(q, -1); msg = 'Você recusou.'; }
+    else {
+      const c = k === 'yes' ? e.amt : k === 'half' ? half(e.amt) : parseMoney(($('#cv' + id) || {}).value);
+      if (!validAmt(c)) { msg = 'Informe um valor válido.'; bad = keep = true; }
+      else if (k === 'other' && c < e.amt * 0.4) msg = q.name + ' diz que assim não resolve, mas agradece.';
+      else { const r = lendMoney(q, c, e.due); fin(r); if (r.ok) addBond(q, c >= e.amt ? 3 : 2); }
+    }
+  } else if (e.type === 'offer') { if (k === 'yes') fin(borrowMoney(q, e.amt, e.due)); else msg = 'Você recusou.'; }
+  else if (e.type === 'gig') {
+    if (k === 'yes') {
+      G.events = G.events.filter(x => x.id !== id); advanceTime(e.dur);
+      const r = q.cash >= e.amt ? addMoney(e.amt, 'wallet', 'Serviço para ' + q.name, 'Serviço') : null;
+      if (r && r.ok) { q.cash -= e.amt; addBond(q, 2); remember('Você trabalhou para ' + q.name + ' e recebeu ' + fmtUSD(e.amt) + '.'); msg = r.msg; }
+      else { G.debts.push({ id: G.nextDebt++, npc: q.id, dir: 'owed', amt: e.amt, due: G.time + 3 * 1440, t0: G.time, evt: false }); remember(q.name + ' ficou devendo ' + fmtUSD(e.amt) + ' pelo serviço.'); msg = q.name + ' ficou devendo o pagamento.'; }
+    } else msg = 'Você recusou.';
+  } else if (e.type === 'meal') { if (k === 'skip') msg = 'Você pulou a refeição.'; else fin(payAuto(k === 'a' ? 800 : 1800, k === 'a' ? 'Refeição simples' : 'Refeição', 'Alimentação')); }
+  else if (e.type === 'bill') { if (k === 'pay') fin(payAuto(e.amt, e.txt.replace(/\.$/, ''), 'Contas')); else { remember('Você deixou para lá: ' + e.txt); msg = 'Você deixou para lá.'; } }
+  else if (e.type === 'collect' && d) {
+    d.evt = false;
+    if (k === 'pay') { const r = payDebt(d.id, d.amt); fin(r); if (!r.ok) d.evt = true; }
+    else if (k === 'wait') { if (q.bond >= 40 || rnd() < 0.3) { d.due = now + 7 * 1440; addBond(q, -1); msg = q.name + ' aceita esperar mais uma semana.'; } else { d.due = now + 2 * 1440; addBond(q, -4); msg = q.name + ' não gostou: dá só mais dois dias.'; } }
+    else { d.due = now + 3 * 1440; addBond(q, -6); msg = q.name + ' ficou irritado(a) com a sua falta de resposta.'; }
+  } else if (e.type === 'extend' && d) {
+    d.evt = false;
+    if (k === 'grant') { d.due = now + 7 * 1440; addBond(q, 1); msg = 'Prazo estendido por 7 dias.'; }
+    else if (collectDebt(d, now)) msg = q.name + ' devolveu o dinheiro, meio sem jeito.';
+    else { d.due = now + 2 * 1440; addBond(q, -2); msg = q.name + ' não tem como pagar agora. Prazo: 2 dias.'; }
+  }
+  if (!keep) G.events = G.events.filter(x => x.id !== id);
+  commit(); renderGame(); if (msg) toast(msg, bad);
+}
+
+/* Conversa livre. Brain.interpret transforma texto em uma INTENÇÃO; só o motor mexe no dinheiro.
+   Para usar IA no futuro, troque interpret/respond: a IA devolve intenções e o motor valida. */
+const chat = {};
+const norm = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const Brain = {
+  interpret(text) {
+    const n = norm(text), m = /(\d+(?:[.,]\d{1,2})?)/.exec(n), amt = m ? parseMoney(m[1]) : NaN;
+    const w = /ate\s+(domingo|segunda|terca|quarta|quinta|sexta|sabado)/.exec(n);
+    if (/emprest/.test(n)) return { type: 'ask_loan', amt, wd: w ? ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'].indexOf(w[1]) : null };
+    if (/devolv|quit|pagar|paguei|acert/.test(n)) return { type: 'repay', amt };
+    return { type: 'unknown' };
+  },
+  respond(i, q) {
+    if (i.type === 'ask_loan') {
+      if (!validAmt(i.amt)) return 'Quanto você precisa?';
+      if (G.debts.some(d => d.npc === q.id)) return 'Vamos acertar o que já está pendente antes.';
+      const due = i.wd !== null ? nextWeekday(G.time, i.wd) : G.time + 7 * 1440;
+      const will = (q.bond + q.gen) / 2, need = 25 + i.amt / 100 * 0.4, can = q.cash - Math.round(q.income * 0.1);
+      if (will < need) return will > 40 ? 'Queria ajudar, mas esse valor me deixa desconfortável.' : 'Agora não vai dar.';
+      if (can >= i.amt) { const r = borrowMoney(q, i.amt, due); return r.ok ? 'Fechado. Me devolve até ' + fmtShort(due) + '.' : r.msg; }
+      const part = Math.floor(can / 1000) * 1000;
+      if (part >= 1000 && part >= i.amt * 0.4) { pushEv({ type: 'offer', npc: q.id, amt: part, due, exp: G.time + 1440, txt: q.name + ' só consegue emprestar ' + fmtUSD(part) + ' agora, para você devolver até ' + fmtShort(due) + '.' }, G.time); commit(); return 'Só consigo ' + fmtUSD(part) + '. Se servir, a oferta está no topo da tela.'; }
+      return 'Estou sem folga agora.';
+    }
+    if (i.type === 'repay') {
+      const d = G.debts.find(x => x.npc === q.id && x.dir === 'owe');
+      if (!d) return 'Você não me deve nada.';
+      const r = payDebt(d.id, isNaN(i.amt) ? d.amt : Math.min(i.amt, d.amt));
+      return r.ok ? 'Recebido. Valeu.' : r.msg;
+    }
+    return 'Não entendi. (Por enquanto, as conversas entendem pedidos de empréstimo e pagamentos de dívida.)';
+  }
+};
+function talk(id) {
+  const q = npcOf(id), inp = $('#tk-' + id), text = inp ? inp.value.trim().slice(0, 140) : '';
+  if (!q || !text) return;
+  chat[id] = [text, Brain.respond(Brain.interpret(text), q)];
+  renderGame();
+}
+function customAdvance() {
+  const n = Math.round(Number($('#cN').value)), mins = n * ({ m: 1, h: 60, d: 1440 })[$('#cU').value];
+  if (!(n >= 1) || mins > 44640) return toast('Use de 1 minuto até 31 dias.', true);
+  advanceTime(mins);
+}
+
 /* ---------- Views (registro expansível) ---------- */
+let fsub = 'visao', ffilter = 'all';
+const DIAS3 = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'], MES3 = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const fmtShort = m => { const d = asDate(m); return DIAS3[d.getUTCDay()] + ', ' + d.getUTCDate() + ' ' + MES3[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); };
+const accOpts = '<option value="wallet">Carteira</option><option value="bank">Banco</option>';
+const FSUB = {
+  visao() {
+    const row = d => { const q = npcOf(d.npc); return `<div class="tx"><div class="tl"><b>${esc(q.name)}</b><span class="amt ${d.dir === 'owe' ? 'expense' : 'income'}">${fmtUSD(d.amt)}</span></div><div class="muted small">${d.dir === 'owe' ? 'Você deve' : 'Deve a você'} · até ${fmtShort(d.due)}</div>${d.dir === 'owe' ? `<button class="btn ghost" style="margin-top:8px;min-height:44px" data-act="paydebt" data-id="${d.id}">Pagar</button>` : ''}</div>`; };
+    const src = {}; G.tx.filter(x => x.type === 'income' && !LOANCATS.has(x.cat)).forEach(x => { src[x.desc] = (src[x.desc] || 0) + x.amt; });
+    const srcRows = Object.keys(src).map(k => `<div class="tx"><div class="tl"><b>${esc(k)}</b><span class="amt income">${fmtUSD(src[k])}</span></div></div>`).join('');
+    return `<section class="card"><h2>Dívidas e empréstimos</h2>${G.debts.map(row).join('') || '<p class="muted">Ninguém deve a ninguém por enquanto.</p>'}</section>
+      <section class="card"><h2>Fontes de renda</h2>${srcRows || '<p class="muted">Nenhuma renda ainda. Ela vem do que acontece na sua rotina.</p>'}</section>
+      <section class="card"><h2>Caixa eletrônico</h2><div class="crow"><input id="atmAmt" inputmode="decimal" placeholder="Valor (US$)" aria-label="Valor"><button class="btn ghost" data-act="atm" data-k="dep">Depositar</button><button class="btn ghost" data-act="atm" data-k="saq">Sacar</button></div></section>`;
+  },
+  hist() {
+    const s = getFinancialSummary(), h = getTransactionHistory(ffilter);
+    const F = [['all', 'Todas'], ['income', 'Receitas'], ['expense', 'Despesas'], ['transfer', 'Transf.']];
+    const rows = h.slice(0, 100).map(x => `<div class="tx"><div class="tl"><b>${esc(x.desc)}</b><span class="amt ${x.type}">${x.type === 'income' ? '+' : x.type === 'expense' ? '−' : ''}${fmtUSD(x.amt)}</span></div>
+      <div class="muted small">${esc(x.cat)} · ${accName(x.acc)}</div><div class="muted small">${fmtShort(x.t)} · ${fmtTime(x.t)}</div>
+      <div class="muted small">Saldo após: carteira ${fmtUSD(x.w)} · banco ${fmtUSD(x.b)}</div></div>`).join('');
+    return `<section class="card"><h2>Resumo</h2><div class="bal"><div><span class="muted small">Receitas</span><b>${fmtUSD(s.income)}</b></div><div><span class="muted small">Despesas</span><b>${fmtUSD(s.expense)}</b></div></div>
+      <div class="muted small">Carteira ${fmtUSD(s.wallet)} · Banco ${fmtUSD(s.bank)} · Patrimônio ${fmtUSD(s.total)}</div></section>
+      <section class="card"><h2>Financial History</h2>
+      <div class="seg">${F.map(([k, l]) => `<button data-act="ffil" data-k="${k}"${k === ffilter ? ' aria-pressed="true"' : ''}>${l}</button>`).join('')}</div>
+      ${rows || '<p class="muted">Nenhuma transação ainda.</p>'}${h.length > 100 ? '<p class="muted small">Mostrando as 100 mais recentes.</p>' : ''}</section>`;
+  },
+};
+
 const VIEWS = {
   painel: {
     label: 'Painel',
@@ -258,9 +580,12 @@ const VIEWS = {
         <div class="muted small">${fmtTime(G.time)} · ${period(G.time).toLowerCase()} · dia ${dayIndex(G.time) + 1}</div>
         <div class="grid">
           <button class="btn ghost" data-act="adv" data-m="15">Esperar 15 min</button>
+          <button class="btn ghost" data-act="adv" data-m="30">Esperar 30 min</button>
           <button class="btn ghost" data-act="adv" data-m="60">Esperar 1 hora</button>
           <button class="btn ghost" data-act="adv" data-m="180">Esperar 3 horas</button>
           <button class="btn ghost" data-act="adv" data-m="until6">Esperar até as 06:00</button>
+          <button class="btn ghost" data-act="adv" data-m="1440">Esperar 24 horas</button>
+          <div class="crow"><input id="cN" type="number" inputmode="numeric" min="1" value="1" aria-label="Quantidade"><select id="cU" aria-label="Unidade"><option value="m">min</option><option value="h">horas</option><option value="d">dias</option></select><button class="btn ghost" data-act="advc">Avançar</button></div>
         </div>
       </section>
       <section class="card">
@@ -274,10 +599,32 @@ const VIEWS = {
       </section>`;
     }
   },
+  pessoas: {
+    label: 'Pessoas',
+    render() {
+      return G.npcs.map(q => {
+        const debts = G.debts.filter(d => d.npc === q.id).map(d => `<div class="muted small">${d.dir === 'owe' ? 'Você deve' : 'Deve a você'} ${fmtUSD(d.amt)} · até ${fmtShort(d.due)}</div>`).join('');
+        const c = chat[q.id];
+        return `<section class="card"><div class="who" style="font-size:22px">${esc(q.name)}</div><div class="muted small">${esc(q.occ)} · ${bondWord(q.bond)}</div>${debts}
+          ${c ? `<p class="bio">Você: “${esc(c[0])}”<br>${esc(q.name)}: ${esc(c[1])}</p>` : ''}
+          <div class="crow" style="margin-top:12px"><input id="tk-${q.id}" maxlength="140" autocomplete="off" placeholder="Escreva para ${esc(q.name)}…" aria-label="Mensagem para ${esc(q.name)}"><button class="btn ghost" data-act="talk" data-id="${q.id}">Falar</button></div></section>`;
+      }).join('');
+    }
+  },
+  financas: {
+    label: 'Finanças',
+    render() {
+      const s = getFinancialSummary();
+      const T = [['visao', 'Visão geral'], ['hist', 'Histórico']];
+      return `<section class="card"><div class="bal"><div><span class="muted small">Carteira</span><b>${fmtUSD(s.wallet)}</b></div><div><span class="muted small">Banco</span><b>${fmtUSD(s.bank)}</b></div></div>
+        <div class="muted small">Patrimônio financeiro: <b class="gold">${fmtUSD(s.total)}</b></div></section>
+        <div class="seg">${T.map(([k, l]) => `<button data-act="fsub" data-k="${k}"${k === fsub ? ' aria-pressed="true"' : ''}>${l}</button>`).join('')}</div>${FSUB[fsub]()}`;
+    }
+  },
   diario: {
     label: 'Diário',
     render() {
-      const items = G.diary.slice().reverse().map(e =>
+      const items = G.diary.map((e, i) => ({ e, i })).sort((a, b) => b.e.t - a.e.t || b.i - a.i).map(x => x.e).map(e =>
         `<div class="entry"><time>${fmtDate(e.t)} · ${fmtTime(e.t)}</time>${esc(e.text)}</div>`).join('');
       return `<section class="card"><h2>Diário</h2>${items || '<p class="muted">Nada registrado ainda.</p>'}</section>`;
     }
@@ -298,7 +645,7 @@ const VIEWS = {
           <button class="btn danger" data-act="wipe">Apagar este jogo</button>
         </div>
       </section>
-      <p class="muted small" style="text-align:center">DANTE — AFTER HOURS · versão 0.1</p>`;
+      <p class="muted small" style="text-align:center">DANTE — AFTER HOURS · versão 0.3</p>`;
     }
   }
 };
@@ -319,10 +666,10 @@ function renderTitle() {
 function renderGame() {
   $('#hClock').textContent = fmtTime(G.time);
   $('#hPeriod').textContent = period(G.time);
-  $('#hDay').textContent = 'Dia ' + (dayIndex(G.time) + 1);
+  $('#hDay').textContent = fmtShort(G.time);
   $('#nav').innerHTML = Object.keys(VIEWS).map(k =>
     `<button data-act="nav" data-v="${k}"${k === view ? ' aria-current="page"' : ''}>${VIEWS[k].label}</button>`).join('');
-  $('#view').innerHTML = VIEWS[view].render();
+  $('#view').innerHTML = eventsHTML() + VIEWS[view].render();
 }
 function enterGame() {
   view = 'painel';
@@ -380,8 +727,8 @@ document.addEventListener('click', ev => {
   const act = el.dataset.act;
   if (act === 'continue') { const s = loadSave(); if (s) { G = s; enterGame(); } else renderTitle(); }
   else if (act === 'new') {
-    if (loadSave() && !confirm('Já existe um jogo salvo. Ele só será substituído quando você terminar de criar o novo personagem. Continuar?')) return;
-    startCreate();
+    if (loadSave()) askConfirm('Já existe um jogo salvo. Ele só será substituído quando você terminar de criar o novo personagem. Continuar?', startCreate);
+    else startCreate();
   }
   else if (act === 'back') renderTitle();
   else if (act === 'attr') {
@@ -391,13 +738,27 @@ document.addEventListener('click', ev => {
   }
   else if (act === 'start') finishCreate();
   else if (act === 'nav') { view = el.dataset.v; renderGame(); window.scrollTo(0, 0); }
-  else if (act === 'adv') advance(el.dataset.m === 'until6' ? minutesUntil(6) : Number(el.dataset.m));
+  else if (act === 'adv') advanceTime(el.dataset.m === 'until6' ? minutesUntil(6) : Number(el.dataset.m));
+  else if (act === 'advc') customAdvance();
+  else if (act === 'yes') { $('#modal').hidden = true; const cb = confirmCb; confirmCb = null; if (cb) cb(); }
+  else if (act === 'no') { $('#modal').hidden = true; confirmCb = null; }
+  else if (act === 'fsub') { fsub = el.dataset.k; renderGame(); }
+  else if (act === 'ffil') { ffilter = el.dataset.k; renderGame(); }
+  else if (act === 'ev') resolveEv(Number(el.dataset.id), el.dataset.k);
+  else if (act === 'talk') talk(el.dataset.id);
+  else if (act === 'paydebt') { const d = G.debts.find(x => x.id === Number(el.dataset.id)); const r = d ? payDebt(d.id, d.amt) : R(false, 'Dívida não encontrada.'); toast(r.msg, !r.ok); renderGame(); }
+  else if (act === 'atm') { const c = parseMoney($('#atmAmt').value); const r = isNaN(c) ? R(false, 'Informe um valor válido.') : el.dataset.k === 'dep' ? transferMoney(c, 'wallet', 'bank', 'Depósito') : transferMoney(c, 'bank', 'wallet', 'Saque'); toast(r.msg, !r.ok); if (r.ok) renderGame(); }
   else if (act === 'menu') { renderTitle(); }
   else if (act === 'wipe') {
-    if (!confirm('Apagar este jogo salvo? Isso não pode ser desfeito.')) return;
-    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-    G = null; renderTitle();
+    askConfirm('Apagar este jogo salvo? Isso não pode ser desfeito.', () => {
+      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+      G = null; renderTitle();
+    });
   }
+});
+
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && ev.target.id && ev.target.id.startsWith('tk-')) talk(ev.target.id.slice(3));
 });
 
 /* ---------- Início ---------- */
