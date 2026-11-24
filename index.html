@@ -349,6 +349,36 @@ body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#0909
 #view{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}
 @media(min-width:481px){#game{max-width:480px;margin:0 auto;min-height:100dvh;border-left:1px solid #b99a531c;border-right:1px solid #b99a531c;box-shadow:0 0 80px #0008}}
 
+
+
+/* ---------- Interface de cena: registro editorial + campo fixo ---------- */
+.scene-location-card{margin-bottom:12px}
+.scene-presence-card{margin-bottom:12px}
+.scene-context-card{margin-bottom:12px}
+.scene-history-card{padding-bottom:8px}
+.scene-feed{display:flex;flex-direction:column;margin-top:8px}
+.scene-feed-entry{padding:13px 0;border-top:1px solid #b99a5326;white-space:pre-wrap;overflow-wrap:anywhere}
+.scene-feed-entry:first-child{border-top:0}
+.scene-feed-meta{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:5px}
+.scene-feed-meta b{font-size:12px;letter-spacing:.045em;color:var(--gold-hi);font-weight:650}
+.scene-feed-meta time{font-size:10px;color:var(--muted);white-space:nowrap}
+.scene-feed-text{font-size:14px;line-height:1.6;color:#e4e0d7}
+.scene-feed-entry.player .scene-feed-meta b{color:#c7a65c}
+.scene-feed-entry.narration .scene-feed-meta b{color:#9b9a94}
+.scene-composer-card{position:sticky;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:4;padding:12px;background:rgba(22,21,20,.97);backdrop-filter:blur(14px);border-color:#b99a5355;box-shadow:0 -8px 28px #0005,0 8px 24px #0004}
+.scene-composer{margin:0}
+.scene-composer-label{display:block;font-size:12px;color:var(--gold-hi);font-weight:650;margin:0 0 8px}
+.scene-compose-row{display:flex;align-items:flex-end;gap:8px}
+#sceneMessage{flex:1;min-height:48px;max-height:140px;resize:vertical;padding:12px 13px;border:1px solid #5a4a2c;border-radius:14px;background:#101012;color:var(--text);font:14px/1.45 var(--sans);outline:none}
+#sceneMessage:focus{border-color:var(--gold)}
+.scene-send{min-width:76px;height:46px;padding:0 14px;border:1px solid #e8d49b;border-radius:13px;background:linear-gradient(135deg,#d6bd7d,#a98943);color:#15120b;font-weight:700;cursor:pointer}
+.scene-send:disabled{opacity:.6;cursor:wait}
+.scene-compose-hint{font-size:10px;color:var(--muted);margin:7px 2px 0}
+.scene-composer-busy{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.scene-composer-busy b{color:var(--gold-hi)}
+.scene-composer-busy span{color:var(--muted)}
+.scene-away-list{margin-top:6px}
+@media(max-width:360px){.scene-feed-meta{align-items:flex-start;flex-direction:column;gap:2px}.scene-composer-card{padding:10px}}
 </style>
 </head>
 <body>
@@ -1011,75 +1041,53 @@ async function submitSceneToAI(message) {
 
 const VIEWS = {
   painel: {
-    label: 'Mundo',
+    label: 'Conversa',
     render() {
       const w = G.world || worldBlank(G.time);
       const place = WORLD_PLACES[w.locationId] || WORLD_PLACES.off_scene;
       const present = G.npcs.filter(q => q.locationId === w.locationId);
       const elsewhere = G.npcs.filter(q => q.locationId !== w.locationId);
-      const vehicle = w.vehicle;
+      const vehicle = w.vehicle || { name: 'Nenhum veículo', year: '', status: 'Indisponível' };
       const due = vehicle && Number.isFinite(vehicle.returnAt) ? fmtTime(vehicle.returnAt) : null;
+      const entries = (G.world.sceneLog || []).slice().sort((a, b) => a.t - b.t || a.id - b.id);
+      const log = entries.map(e => {
+        const legacyPlayer = e.kind === 'action' || e.kind === 'speech';
+        const kind = legacyPlayer ? 'player' : e.kind;
+        const author = kind === 'player' ? 'Dante' : kind === 'npc' ? 'Pessoa presente' : 'Cena';
+        const hasNpcName = kind === 'npc' && e.text.includes(': ');
+        const text = hasNpcName ? e.text.slice(e.text.indexOf(': ') + 2) : e.text;
+        const who = hasNpcName ? e.text.slice(0, e.text.indexOf(': ')) : author;
+        return `<article class="scene-feed-entry ${kind}"><div class="scene-feed-meta"><b>${esc(who)}</b><time>${fmtDate(e.t)} · ${fmtTime(e.t)}</time></div><div class="scene-feed-text">${esc(text)}</div></article>`;
+      }).join('');
       return `
-      <section class="world-hero">
-        <div class="world-eyebrow">CENA ATUAL · LOS ANGELES</div>
+      <section class="world-hero scene-location-card">
+        <div class="world-eyebrow">LOCAL ATUAL · LOS ANGELES</div>
         <div class="world-time">${fmtTime(G.time)}</div>
         <div class="world-date">${fmtDate(G.time)}</div>
         <h1>${esc(place.name)}</h1>
         <div class="world-area">${esc(place.area)}</div>
         <p>${esc(place.description)}</p>
       </section>
-      <section class="card">
-        <div class="world-section-head"><h2>Quem está aqui</h2><span>${present.length} ${present.length === 1 ? 'pessoa' : 'pessoas'}</span></div>
-        ${present.length ? present.map(q => `<div class="world-person"><div class="world-avatar">${esc(q.name.slice(0,1))}</div><div class="world-person-main"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></div><span class="world-status">Presente</span></div>`).join('') : '<p class="muted small">Você está sozinho neste local.</p>'}
+      <section class="card scene-presence-card">
+        <div class="world-section-head"><h2>Quem está neste local</h2><span>${present.length} ${present.length === 1 ? 'pessoa' : 'pessoas'}</span></div>
+        ${present.length ? present.map(q => `<div class="world-person"><div class="world-avatar">${esc(q.name.slice(0,1))}</div><div class="world-person-main"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></div><span class="world-status">Presente</span></div>`).join('') : '<p class="muted small">Dante está sozinho neste local.</p>'}
       </section>
-      <section class="card">
-        <h2>Seu veículo</h2>
-        <div class="world-vehicle"><div><b>${esc(vehicle.name)} ${vehicle.year}</b><small>${esc(vehicle.status)} · não é seu veículo próprio</small></div><div class="world-deadline"><small>Devolução</small><b>${due || '—'}</b></div></div>
-        <p class="muted small" style="margin:10px 0 0">A locação precisa ser encerrada hoje até as 21:00.</p>
+      <section class="card scene-context-card">
+        <div class="world-section-head"><h2>Contexto ao redor</h2><span>${elsewhere.length} fora daqui</span></div>
+        <div class="world-vehicle"><div><b>${esc(vehicle.name)} ${vehicle.year || ''}</b><small>${esc(vehicle.status || '')}</small></div>${due ? `<div class="world-deadline"><small>Devolução</small><b>${due}</b></div>` : ''}</div>
+        ${elsewhere.length ? `<div class="scene-away-list">${elsewhere.map(q => { const loc = WORLD_PLACES[q.locationId] || WORLD_PLACES.off_scene; return `<div class="world-away"><b>${esc(q.name)}</b><span>${esc(loc.name)} · ${esc(q.occ)}</span></div>`; }).join('')}</div>` : ''}
       </section>
-      <section class="card">
-        <h2>O mundo ao redor</h2>
-        ${elsewhere.map(q => {
-          const loc = WORLD_PLACES[q.locationId] || WORLD_PLACES.off_scene;
-          return `<div class="world-away"><b>${esc(q.name)}</b><span>${esc(loc.name)} · ${esc(q.occ)}</span></div>`;
-        }).join('') || '<p class="muted small">Nenhuma outra pessoa conhecida registrada.</p>'}
+      <section class="card scene-history-card">
+        <div class="world-section-head"><h2>Registro da cena</h2><span>${entries.length} registros</span></div>
+        <p class="muted small">Ações, acontecimentos e respostas são registrados em ordem cronológica.</p>
+        <div class="scene-feed">${log || '<div class="scene-empty">A cena ainda não começou. Registre uma ação ou fala para iniciar.</div>'}</div>
       </section>
-      <section class="card">
-        <h2>O que Dante faz ou diz?</h2>
-        <p class="muted small">Escreva naturalmente. Você pode descrever uma ação, falar com alguém ou fazer as duas coisas na mesma mensagem. A IA interpreta o contexto sem decidir por Dante.</p>
-        ${w.activeAction ? `<p class="muted small">Dante está ocupado. Aguarde a atividade terminar para registrar outra ação.</p>` : `<form id="sceneEntryForm">
-          <p class="scene-combo-note">O que Dante faz ou diz?</p>
-          <div class="field"><label for="sceneMessage">Mensagem</label><textarea id="sceneMessage" maxlength="1000" required placeholder="Ex.: Dante se aproxima de Alex e pergunta: “Você já descobriu o que está causando esse barulho no motor?”"></textarea></div>
-          <button class="btn" type="submit"${sceneRequestPending ? ' disabled' : ''}>${sceneRequestPending ? 'Analisando…' : 'Enviar'}</button>
+      <section class="card scene-composer-card">
+        ${w.activeAction ? `<div class="scene-composer-busy"><b>Dante está ocupado</b><span>Aguarde a atividade terminar para registrar outra ação.</span></div>` : `<form id="sceneEntryForm" class="scene-composer">
+          <label class="scene-composer-label" for="sceneMessage">O que Dante faz ou diz?</label>
+          <div class="scene-compose-row"><textarea id="sceneMessage" maxlength="1000" required rows="2" placeholder="Descreva uma ação, faça uma pergunta ou fale com alguém..."></textarea><button class="scene-send" type="submit" aria-label="Enviar ação"${sceneRequestPending ? ' disabled' : ''}>${sceneRequestPending ? '…' : 'Enviar'}</button></div>
+          <div class="scene-compose-hint">A IA considera o local, o horário e as pessoas presentes.</div>
         </form>`}
-      </section>
-      <section class="card">
-        <h2>Passagem do tempo</h2>
-        <div class="grid">
-          <button class="btn ghost" data-act="adv" data-m="15"${w.activeAction ? ' disabled' : ''}>15 minutos</button>
-          <button class="btn ghost" data-act="adv" data-m="60"${w.activeAction ? ' disabled' : ''}>1 hora</button>
-          <button class="btn ghost" data-act="adv" data-m="180"${w.activeAction ? ' disabled' : ''}>3 horas</button>
-          <button class="btn ghost" data-act="adv" data-m="until6"${w.activeAction ? ' disabled' : ''}>Até 06:00</button>
-        </div>
-      </section>`;
-    }
-  },
-  conversas: {
-    label: 'Conversas',
-    render() {
-      const entries = (G.world.sceneLog || []).slice().sort((a, b) => a.t - b.t || a.id - b.id);
-      const content = entries.map(e => {
-        const legacyPlayer = e.kind === 'action' || e.kind === 'speech';
-        const kind = legacyPlayer ? 'player' : e.kind;
-        const author = kind === 'player' ? 'Dante' : kind === 'npc' ? 'Pessoa presente' : 'Cena';
-        const hasNpcName = kind === 'npc' && e.text.includes(': ');
-        const text = hasNpcName ? e.text.slice(e.text.indexOf(': ') + 2) : e.text;
-        const npcName = hasNpcName ? e.text.slice(0, e.text.indexOf(': ')) : author;
-        return `<article class="scene-message ${kind}"><span class="scene-author">${esc(npcName)}</span><div>${esc(text)}</div><time>${fmtDate(e.t)} · ${fmtTime(e.t)}</time></article>`;
-      }).join('');
-      return `<section class="card"><div class="world-section-head"><h2>Conversas</h2><span>${entries.length} registros</span></div>
-        <p class="muted small">Histórico cronológico do que Dante declarou, do que aconteceu na cena e das respostas das pessoas presentes.</p>
-        <div class="scene-conversation">${content || '<div class="scene-empty">Ainda não há conversas registradas. Use a aba Mundo para iniciar uma interação.</div>'}</div>
       </section>`;
     }
   },
