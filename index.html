@@ -174,6 +174,7 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 
 /* ---------- Mobilidade e cartão de crédito ---------- */
 .phone-app-icon.uber{background:#f5f5f5;color:#090909;font-size:29px;font-weight:800;letter-spacing:-.08em}
+.phone-app-icon.uber-driver{background:linear-gradient(145deg,#d8f5e4,#5a9d76);font-size:26px}
 .ride-app{min-height:100%;background:#f6f6f6;color:#161616;font-family:var(--sans);padding:18px 16px 30px}
 .ride-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 20px}
 .ride-brand{font-size:24px;font-weight:800;letter-spacing:-.08em;color:#111}
@@ -434,6 +435,7 @@ body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#0909
 .ride-lock{border:1px solid #e2d4ae;background:#fff8e8;border-radius:14px;padding:13px;color:#5b461d;font-size:12px;line-height:1.5;margin:12px 0}
 .ride-category{font-size:11px;color:#777;font-weight:750;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
 .ride-destination-note{font-size:11px;color:#777;margin-top:5px}
+
 </style>
 </head>
 <body>
@@ -506,6 +508,7 @@ body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#0909
       <div class="phone-app-grid">
         <button class="phone-app" data-app="bank"><span class="phone-app-icon bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18L12 3 3 9Z"/><path d="M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18"/></svg></span><span>Banco</span></button>
         <button class="phone-app" data-app="uber"><span class="phone-app-icon uber">U</span><span>Uber</span></button>
+        <button class="phone-app" data-app="uberDriver"><span class="phone-app-icon uber-driver">🚘</span><span>Uber Driver</span></button>
         <button class="phone-app" data-app="whatsapp"><span class="phone-app-icon whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L4 20l1.1-3.9a8.2 8.2 0 1 1 15.1-4.4Z"/><path d="M9 8.5c.3-.5.6-.5.9-.1l.8 1.2c.2.3.1.5-.1.8l-.5.6c.6 1.1 1.4 1.9 2.6 2.5l.6-.7c.2-.2.4-.3.7-.1l1.2.7c.4.2.4.5.2.9-.4.8-1.2 1.2-2.1 1.1-2.5-.4-5.4-3.2-5.7-5.7-.1-.5.3-1 .7-1.2Z"/></svg></span><span>WhatsApp</span></button>
         <button class="phone-app" data-app="settings"><span class="phone-app-icon settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1a1.7 1.7 0 1 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 1 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 1 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 1 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 1 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2V2a1.7 1.7 0 1 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 1 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 1 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/></svg></span><span>Ajustes</span></button>
         <button class="phone-app" data-app="notes"><span class="phone-app-icon notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span>Notas</span></button>
@@ -1158,7 +1161,7 @@ function busyBannerHTML() {
     const total = Math.max(1, ride.endTime - ride.startTime);
     const done = clamp((total - left) / total * 100, 0, 100);
     const remaining = left >= 60 ? `${Math.floor(left / 60)}h ${left % 60}min` : `${left} min`;
-    return `<section class="card busy-card"><div class="busy-title"><div><div class="muted small">🚘 DANTE ESTÁ EM DESLOCAMENTO</div><h2 style="margin:2px 0 0">A caminho de ${esc(dest.name)}</h2></div><div class="busy-time">${remaining}</div></div><div class="busy-track"><span style="width:${done}%"></span></div><p class="muted small" style="margin:0">Durante a corrida, nenhuma outra ação, conversa, compra ou navegação está disponível. O jogo será liberado quando o carro chegar.</p></section>`;
+    return `<section class="card busy-card"><div class="busy-title"><div><div class="muted small">🚘 DANTE ESTÁ EM DESLOCAMENTO</div><h2 style="margin:2px 0 0">A caminho de ${esc(dest.name)}</h2></div><div class="busy-time">${remaining}</div></div><div class="busy-track"><span style="width:${done}%"></span></div><p class="muted small" style="margin:0">Você pode usar os aplicativos do celular durante a corrida. Outras ações do mundo ficam pausadas até a chegada.</p></section>`;
   }
   if (!a) return '';
   const total = Math.max(1, a.endTime - a.startTime);
@@ -1366,7 +1369,7 @@ function renderGame() {
   $('#nav').innerHTML = Object.keys(VIEWS).map(k =>
     `<button data-act="nav" data-v="${k}"${k === view ? ' aria-current="page"' : ''}>${VIEWS[k].label}</button>`).join('');
   $('#view').innerHTML = busyBannerHTML() + (isDanteBusy() ? '' : eventsHTML()) + VIEWS[view].render();
-  $('#phoneLauncher').hidden = isDanteBusy();
+  $('#phoneLauncher').hidden = !!(G && G.world && G.world.activeAction);
 }
 function enterGame() {
   view = 'painel';
@@ -1463,6 +1466,8 @@ function openPhoneApp(name) {
     renderBankApp('home');
   } else if (name === 'uber') {
     renderUber('home');
+  } else if (name === 'uberDriver') {
+    renderUberDriver('home');
   } else if (name === 'whatsapp') {
     renderWhatsApp('list');
   } else if (name === 'settings') {
@@ -1484,7 +1489,7 @@ function ridePeople(){return G.npcs.filter(q=>q.locationId===G.world.locationId)
 function renderUber(page='home'){
  const app=$('#phoneAppScreen');app.className='phone-app-screen';const ride=G.world.ride;
  if(page==='trip'&&ride){const origin=WORLD_PLACES[ride.origin]||WORLD_PLACES.off_scene,dest=WORLD_PLACES[ride.destination]||WORLD_PLACES.off_scene,remaining=Math.max(0,ride.endTime-G.time);
- app.innerHTML=`<div class="ride-app"><div class="ride-head"><span class="ride-brand">Uber</span><span class="ride-tag">${remaining>0?'VIAGEM EM ANDAMENTO':'VIAGEM CONCLUÍDA'}</span></div><div class="ride-map"><div class="ride-map-pin">🚘</div></div><div class="ride-status"><h4>${remaining>0?'Sua viagem está a caminho':'Viagem concluída'}</h4><p>${remaining>0?'O carro está levando você ao destino.':'Você chegou ao destino.'}</p></div><div class="ride-route"><div><b>Embarque</b><br>${esc(origin.name)}</div><div><b>Destino</b><br>${esc(dest.name)} · ${esc(dest.area)}</div></div><div class="ride-options"><div class="ride-price"><span>Motorista</span><b>${esc(ride.driver||'Motorista parceiro')}</b></div><div class="ride-price"><span>Previsão de chegada</span><b>${remaining} min</b></div><div class="ride-price"><span>Passageiros</span><b>${ride.passengers.length+1}</b></div><div class="ride-price"><span>Pagamento</span><b>${ride.payment==='cash'?'Dinheiro':ride.payment==='pix'?'Pix':'Cartão de crédito'}</b></div><div class="ride-price"><span>Total</span><strong>${fmtUSD(ride.fare)}</strong></div></div>${remaining>0?'<div class="ride-lock">🔒 O celular e as demais ações ficam indisponíveis durante o trajeto. O acesso será liberado automaticamente na chegada.</div>':'<button class="ride-primary" type="button" data-uber="home">Voltar ao início</button>'}<p class="ride-note">${remaining>0?'A viagem avança junto com o relógio do jogo. Ao chegar, Dante e os acompanhantes selecionados serão movidos para o destino.':'Você chegou ao destino. Agora pode continuar explorando a cidade.'}</p></div>`;return;}
+ app.innerHTML=`<div class="ride-app"><div class="ride-head"><span class="ride-brand">Uber</span><span class="ride-tag">${remaining>0?'VIAGEM EM ANDAMENTO':'VIAGEM CONCLUÍDA'}</span></div><div class="ride-map"><div class="ride-map-pin">🚘</div></div><div class="ride-status"><h4>${remaining>0?'Sua viagem está a caminho':'Viagem concluída'}</h4><p>${remaining>0?'O carro está levando você ao destino.':'Você chegou ao destino.'}</p></div><div class="ride-route"><div><b>Embarque</b><br>${esc(origin.name)}</div><div><b>Destino</b><br>${esc(dest.name)} · ${esc(dest.area)}</div></div><div class="ride-options"><div class="ride-price"><span>Motorista</span><b>${esc(ride.driver||'Motorista parceiro')}</b></div><div class="ride-price"><span>Previsão de chegada</span><b>${remaining} min</b></div><div class="ride-price"><span>Passageiros</span><b>${ride.passengers.length+1}</b></div><div class="ride-price"><span>Pagamento</span><b>${ride.payment==='cash'?'Dinheiro':ride.payment==='pix'?'Pix':'Cartão de crédito'}</b></div><div class="ride-price"><span>Total</span><strong>${fmtUSD(ride.fare)}</strong></div></div>${remaining>0?'<div class="ride-lock">📱 Você pode continuar usando o celular durante o trajeto. As ações fora do celular ficam pausadas até a chegada.</div>':'<button class="ride-primary" type="button" data-uber="home">Voltar ao início</button>'}<p class="ride-note">${remaining>0?'A viagem avança junto com o relógio do jogo. Ao chegar, Dante e os acompanhantes selecionados serão movidos para o destino.':'Você chegou ao destino. Agora pode continuar explorando a cidade.'}</p></div>`;return;}
  if(ride&&!ride.completed&&ride.endTime>G.time){renderUber('trip');return;}
  const current=WORLD_PLACES[G.world.locationId]||WORLD_PLACES.off_scene;
  const destinations=Object.entries(WORLD_PLACES).filter(([id])=>id!=='off_scene'&&id!==G.world.locationId).map(([id,p])=>`<option value="${id}" ${rideDraft.destination===id?'selected':''}>${p.icon||'📍'} ${esc(p.name)} · ${esc(p.area)}</option>`).join('');
@@ -1508,6 +1513,40 @@ function requestRide(form){
  const drivers=['Alex','Jordan','Taylor','Morgan','Sam'];G.world.ride={origin:G.world.locationId,destination,passengers,fare,payment,driver:drivers[(G.time+fare)%drivers.length],startTime:G.time,endTime:G.time+duration,completed:false};
  rideDraft={destination:'',payment:'cash',passengers:[]};remember('Você chamou um Uber para '+WORLD_PLACES[destination].name+'.');commit();renderUber('trip');toast('Motorista encontrado. Viagem iniciada.');
 }
+/* ---------- Uber Driver: veículo, turno e relatório ---------- */
+const DRIVER_CARS = [
+ {id:'compact',name:'Sedã econômico',detail:'Aluguel mais barato · consumo baixo',rent:8500,fuel:1.0},
+ {id:'comfort',name:'Sedã confortável',detail:'Mais conforto · consumo médio',rent:12500,fuel:1.18},
+ {id:'suv',name:'SUV',detail:'Maior porte · consumo alto',rent:18000,fuel:1.42}
+];
+let driverDraft={ownership:'rent',car:'compact',hours:4,pix:0,extra:2500};
+function renderUberDriver(page='home'){
+ const app=$('#phoneAppScreen');app.className='phone-app-screen';
+ const last=G.world.driverLastReport;
+ if(page==='report'&&last){
+  app.innerHTML=`<div class="ride-app"><div class="ride-head"><button type="button" data-driver="home">‹</button><span class="ride-brand">Uber Driver</span><span class="ride-tag">RELATÓRIO</span></div><div class="ride-status"><h4>Turno finalizado</h4><p>${last.hours} horas · ${esc(last.car)} · ${last.ownership==='borrow'?'Emprestado de '+esc(last.lender||'alguém'):last.ownership==='rent'?'Alugado':'Próprio'} · ${last.trips} viagens concluídas</p></div><div class="ride-options"><div class="ride-price"><span>Ganhos com corridas</span><b>${fmtUSD(last.gross)}</b></div><div class="ride-price"><span>Aluguel do veículo</span><b>${fmtUSD(last.rent)}</b></div><div class="ride-price"><span>Gasolina</span><b>${fmtUSD(last.fuel)}</b></div><div class="ride-price"><span>Outros gastos</span><b>${fmtUSD(last.extra)}</b></div><div class="ride-price"><span>Custos pagos via Pix</span><b>${fmtUSD(last.pixPaid)}</b></div><div class="ride-price"><span>Custos pagos no cartão</span><b>${fmtUSD(last.cardPaid)}</b></div><div class="ride-price"><span>Lucro líquido</span><strong>${fmtUSD(last.net)}</strong></div></div><div class="ride-status"><h4>Resumo das viagens</h4><p>${last.trips} passageiros atendidos · ${last.km.toFixed(1).replace('.',',')} km rodados · ${last.hours}h trabalhadas</p></div><button class="ride-primary" type="button" data-driver="home">Voltar ao painel</button></div>`;return;
+ }
+ const car=DRIVER_CARS.find(c=>c.id===driverDraft.car)||DRIVER_CARS[0];
+ const lenders=(G.npcs||[]).map(q=>`<option value="${esc(q.id)}">${esc(q.name)}</option>`).join('');
+ app.innerHTML=`<div class="ride-app"><div class="ride-head"><button type="button" data-phone="home">‹</button><span class="ride-brand">Uber Driver</span><span class="ride-tag">MODO MOTORISTA</span></div><div class="ride-map"><div class="ride-map-pin">🚘</div></div><div class="ride-status"><h4>Pronto para dirigir?</h4><p>Escolha como vai conseguir o veículo e planeje seu turno. O relatório será calculado ao finalizar.</p></div><form id="driverForm"><div class="ride-field"><label class="ride-label">Como vai conseguir o carro?</label><div class="ride-options"><label class="ride-choice"><input type="radio" name="driverOwnership" value="rent" ${driverDraft.ownership==='rent'?'checked':''}><span><b>Alugar</b><small>O custo do aluguel entra no relatório</small></span></label><label class="ride-choice"><input type="radio" name="driverOwnership" value="borrow" ${driverDraft.ownership==='borrow'?'checked':''}><span><b>Pegar emprestado</b><small>Escolha de quem será o carro</small></span></label><label class="ride-choice"><input type="radio" name="driverOwnership" value="buy" disabled><span><b>Comprar</b><small>Disponível em uma atualização futura</small></span></label></div></div>${driverDraft.ownership==='borrow'?`<div class="ride-field"><label class="ride-label" for="driverLender">De quem vai pegar emprestado?</label><select id="driverLender">${lenders}</select></div>`:''}<div class="ride-field"><label class="ride-label" for="driverCar">Qual carro?</label><select id="driverCar">${DRIVER_CARS.map(c=>`<option value="${c.id}" ${c.id===driverDraft.car?'selected':''}>${c.name} — ${c.detail}</option>`).join('')}</select></div><div class="ride-field"><label class="ride-label" for="driverHours">Quantas horas vai trabalhar?</label><select id="driverHours">${[2,3,4,5,6,7,8,9,10,12].map(h=>`<option value="${h}" ${h===Number(driverDraft.hours)?'selected':''}>${h} horas</option>`).join('')}</select></div><div class="ride-field"><label class="ride-label" for="driverExtra">Outros gastos do turno (R$)</label><input id="driverExtra" type="number" min="0" step="0.01" value="${(driverDraft.extra/100).toFixed(2)}" style="width:100%;padding:13px;border:1px solid #ddd;border-radius:12px;background:#fff;color:#111"></div><div class="ride-field"><label class="ride-label">Como pagar os custos?</label><div class="ride-options"><p style="font-size:12px;color:#666;margin:2px 0 10px">Você poderá dividir o total entre Pix e cartão. O valor restante será cobrado no cartão.</p><label class="ride-label" for="driverPix">Parte paga via Pix (R$)</label><input id="driverPix" type="number" min="0" step="0.01" value="${(driverDraft.pix/100).toFixed(2)}" style="width:100%;padding:13px;border:1px solid #ddd;border-radius:12px;background:#fff;color:#111"><div class="ride-price"><span>Saldo Pix</span><b>${fmtUSD(G.bank)}</b></div><div class="ride-price"><span>Limite disponível no cartão</span><b>${fmtUSD(Math.max(0,G.card.limit-G.card.invoice))}</b></div></div></div><button class="ride-primary" type="submit">Iniciar e concluir turno simulado</button></form><p class="ride-note">A simulação gera corridas, quilometragem, ganhos e despesas proporcionais às horas escolhidas. O tempo do jogo avança pelo período trabalhado.</p>${last?'<button class="ride-primary" type="button" data-driver="report">Ver último relatório</button>':''}</div>`;
+}
+function parseDriverMoney(value){const raw=String(value??'').trim();if(!/^\d{1,9}(?:[.,]\d{1,2})?$/.test(raw))return NaN;const parts=raw.replace(',','.').split('.');return Number(parts[0])*100+Number((parts[1]||'').padEnd(2,'0')||0);}
+function finishDriverShift(form){
+ const ownership=form.querySelector('[name="driverOwnership"]:checked')?.value||'rent';const lender=ownership==='borrow'?(G.npcs||[]).find(q=>q.id===$('#driverLender')?.value)?.name||'Pessoa conhecida':null;const car=DRIVER_CARS.find(c=>c.id===$('#driverCar').value)||DRIVER_CARS[0];const hours=Number($('#driverHours').value);const extra=parseDriverMoney($('#driverExtra').value);const pix=parseDriverMoney($('#driverPix').value);
+ if(!Number.isInteger(hours)||hours<2||hours>12||!Number.isSafeInteger(extra)||extra<0||!Number.isSafeInteger(pix)||pix<0)return toast('Confira as horas e os valores informados.',true);
+ const trips=Math.max(2,Math.round(hours*1.65+(G.time%4)));const km=Number((trips*(5.2+(G.time%3)*.7)).toFixed(1));const gross=Math.round((trips*(2350+(G.time%5)*180)));
+ const fuel=Math.round(km*(car.fuel*115));const rent=ownership==='rent'?car.rent*Math.ceil(hours/8):0;const total=rent+fuel+extra;const cardPaid=total-pix;
+ if(pix>total)return toast('A parte do Pix não pode ser maior que os custos do turno.',true);
+ if(pix>G.bank)return toast('Saldo Pix insuficiente para essa divisão.',true);
+ if(cardPaid>Math.max(0,G.card.limit-G.card.invoice))return toast('Limite do cartão insuficiente para a parte restante.',true);
+ if(pix){const r=spendMoney(pix,'bank','Custos do turno Uber Driver via Pix','Trabalho como motorista');if(!r.ok)return toast(r.msg,true);}
+ if(cardPaid){const r=chargeCreditCard(cardPaid,'Custos do turno Uber Driver');if(!r.ok)return toast(r.msg,true);}
+ const earned=addMoney(gross,'bank','Ganhos de '+trips+' corridas Uber Driver','Trabalho como motorista');if(!earned.ok)return toast(earned.msg,true);
+ const start=G.time;G.world.driverLastReport={hours,car:car.name,trips,km,gross,fuel,rent,extra,net:gross-total,pixPaid:pix,cardPaid,start,end:start+hours*60,ownership,lender};
+ if(!Array.isArray(G.world.sceneLog))G.world.sceneLog=[];G.world.sceneLog.push({id:G.world.nextSceneId++,kind:'narration',text:`Dante trabalhou ${hours} horas como motorista de aplicativo, completou ${trips} viagens e rodou ${km.toFixed(1)} km. Lucro líquido: ${fmtUSD(gross-total)}.`,t:start+hours*60});
+ remember(`Turno Uber Driver: ${hours} horas, ${trips} corridas, ${km.toFixed(1)} km. Ganhos ${fmtUSD(gross)}, custos ${fmtUSD(total)}, lucro líquido ${fmtUSD(gross-total)}.`);commit();advanceTime(hours*60);updatePhoneClock();renderUberDriver('report');toast('Turno concluído. Relatório disponível.');
+}
+
 function completeRideIfDue(){const r=G?.world?.ride;if(!r||r.completed||G.time<r.endTime)return false;G.world.locationId=r.destination;r.completed=true;r.completedAt=G.time;(r.passengers||[]).forEach(id=>{const q=npcOf(id);if(q)q.locationId=r.destination;});const place=WORLD_PLACES[r.destination]||WORLD_PLACES.off_scene;const msg='Dante chegou a '+place.name+(r.passengers?.length?' acompanhado de '+r.passengers.map(id=>npcOf(id)?.name).filter(Boolean).join(', '):'')+'.';if(!Array.isArray(G.world.sceneLog))G.world.sceneLog=[];G.world.sceneLog.push({id:G.world.nextSceneId++,kind:'narration',text:msg,t:G.time});remember(msg);commit();if(phonePage==='uber')renderUber('trip');else toast('Você chegou ao destino: '+place.name+'.');if(place.inventory)openShop(r.destination);return true;}
 
 
@@ -1871,7 +1910,8 @@ function bankMoveMoney(kind) {
 /* Eventos (delegação) */
 
 document.addEventListener('click', ev => {
-  if (isDanteBusy() && ev.target.closest('button,a,input,select,textarea,[data-act],[data-app],[data-wa],[data-bank-page],[data-bank-filter],[data-bank-action],[data-uber],[data-phone],[data-shop-open]')) { toast(isRideInProgress() ? 'Dante está no Uber. Aguarde a chegada para fazer outra coisa.' : 'Dante está ocupado até concluir a atividade.', true); return; }
+  if (G?.world?.activeAction && ev.target.closest('button,a,input,select,textarea,[data-act],[data-app],[data-wa],[data-bank-page],[data-bank-filter],[data-bank-action],[data-uber],[data-driver],[data-phone],[data-shop-open]')) { toast('Dante está ocupado até concluir a atividade.', true); return; }
+  if (isRideInProgress() && !ev.target.closest('#phoneOverlay,#phoneLauncher') && ev.target.closest('button,a,input,select,textarea,[data-act],[data-app],[data-wa],[data-bank-page],[data-bank-filter],[data-bank-action],[data-uber],[data-driver],[data-phone],[data-shop-open]')) { toast('As ações fora do celular ficam pausadas durante a corrida.', true); return; }
   const shopOpen = ev.target.closest('[data-shop-open]');
   if (shopOpen) { openShop(shopOpen.dataset.shopOpen); return; }
   if (ev.target.closest('[data-shop-close]') || ev.target.id === 'shopOverlay') { closeShop(); return; }
@@ -1893,6 +1933,8 @@ document.addEventListener('click', ev => {
   }
   const uberButton=ev.target.closest('[data-uber]');
   if(uberButton){if(uberButton.dataset.uber==='home')renderUber('home');return;}
+  const driverButton=ev.target.closest('[data-driver]');
+  if(driverButton){renderUberDriver(driverButton.dataset.driver==='report'?'report':'home');return;}
   const bankPageButton = ev.target.closest('[data-bank-page]');
   if (bankPageButton) { renderBankApp(bankPageButton.dataset.bankPage); return; }
   const bankFilterButton = ev.target.closest('[data-bank-filter]');
@@ -1954,8 +1996,12 @@ document.addEventListener('submit', ev => {
     confirmShopPurchase(ev.target);
   } else if (ev.target && ev.target.id === 'waCompose') {
     ev.preventDefault();
-    if (isDanteBusy()) { toast(isRideInProgress() ? 'Dante está no Uber. Aguarde a chegada.' : 'Dante está ocupado até concluir a atividade.', true); return; }
+    if (G?.world?.activeAction) { toast('Dante está ocupado até concluir a atividade.', true); return; }
     waSendMessage();
+  } else if (ev.target && ev.target.id === 'driverForm') {
+    ev.preventDefault();
+    if(isDanteBusy()){toast('Dante está ocupado. Aguarde a conclusão.',true);return;}
+    finishDriverShift(ev.target);
   } else if (ev.target && ev.target.id === 'rideForm') {
     ev.preventDefault();
     if(isDanteBusy()){toast('Dante está ocupado. Aguarde a conclusão.',true);return;}
@@ -1971,10 +2017,15 @@ document.addEventListener('submit', ev => {
 
 document.addEventListener('input', ev => {
   if (ev.target && ev.target.matches('[data-shop-qty]')) updateShopTotal();
+  if(ev.target?.id==='driverPix') driverDraft.pix=parseMoney(ev.target.value)||0;
+  if(ev.target?.id==='driverExtra') driverDraft.extra=parseMoney(ev.target.value)||0;
 });
 
 document.addEventListener('change',ev=>{
  if(ev.target && ev.target.matches('[data-shop-qty]')) updateShopTotal();
+ if(ev.target?.name==='driverOwnership'){driverDraft.ownership=ev.target.value;renderUberDriver('home');return;}
+ if(ev.target?.id==='driverCar')driverDraft.car=ev.target.value;
+ if(ev.target?.id==='driverHours')driverDraft.hours=Number(ev.target.value);
  if(ev.target&&(ev.target.name==='rideGroup'||ev.target.name==='ridePassenger'||ev.target.name==='ridePayment'||ev.target.id==='rideDestination')){
   const form=$('#rideForm');if(!form)return;const group=form.querySelector('input[name="rideGroup"]:checked')?.value||'solo';const box=$('#rideCompanions');if(box)box.hidden=group!=='companions';
   const selected=[...form.querySelectorAll('input[name="ridePassenger"]:checked')].map(x=>x.value);rideDraft={destination:$('#rideDestination')?.value||'',payment:form.querySelector('input[name="ridePayment"]:checked')?.value||'cash',passengers:selected};
