@@ -97,8 +97,11 @@ export default async (request) => {
   if (bucket.count > 20) return jsonResponse(429, { error: 'Muitas ações em pouco tempo. Aguarde um minuto.' });
   if (rateBuckets.size > 2000) { for (const [key, value] of rateBuckets) if (now - value.start > 120000) rateBuckets.delete(key); }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return jsonResponse(500, { error: 'A chave GEMINI_API_KEY não está disponível para a função do Netlify. Confira o escopo Functions e publique um novo deploy.' });
+  const geminiApiKey = process.env.GEMINI_API_KEY;
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!geminiApiKey && !groqApiKey) {
+    return jsonResponse(500, { error: 'Nenhuma chave de IA foi configurada. Adicione GEMINI_API_KEY e/ou GROQ_API_KEY nas variáveis de ambiente do Netlify e publique um novo deploy.' });
+  }
 
   let input;
   try {
@@ -147,67 +150,110 @@ export default async (request) => {
   };
 
   try {
-    const requestBody = JSON.stringify({
-      systemInstruction: { parts: [{ text: systemInstruction }] },
-      contents: [{ role: 'user', parts: [{ text: `Contexto atual do jogo (JSON):\n${JSON.stringify(context)}` }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema,
-        maxOutputTokens: 1500,
-        thinkingConfig: { thinkingLevel: 'LOW' }
-      }
-    });
+    const userPrompt = `Contexto atual do jogo (JSON):\n${JSON.stringify(context)}\n\nRetorne somente JSON válido, sem Markdown, seguindo exatamente este formato: {"durationMinutes":1,"activityTitle":"...","narration":"...","npcReactions":[{"npcId":"...","text":"..."}]}.`;
+    let result = null;
+    const providerErrors = [];
 
-    // Modelo principal e alternativa. Repetimos apenas erros temporários de capacidade/rede.
-    const models = [...new Set([
-      process.env.GEMINI_MODEL || 'gemini-3.8-flash',
-      process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash-lite'
-    ])];
-    let upstream = null;
-    let upstreamData = {};
-    let lastStatus = 502;
+    // 1) Gemini é a opção principal. Erros de chave/modelo também acionam o fallback.
+    if (geminiApiKey) {
+      const models = [...new Set([
+        process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+        process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash-lite'
+      ])];
+      let geminiSucceeded = false;
 
-    for (const model of models) {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-            body: requestBody
-          });
-          upstreamData = await upstream.json().catch(() => ({}));
-          if (upstream.ok) break;
-          lastStatus = upstream.status;
-          // Não repetir erros permanentes, como chave inválida ou modelo inexistente.
-          if (![429, 500, 502, 503, 504].includes(upstream.status)) break;
-        } catch {
-          upstream = null;
-          lastStatus = 502;
+      for (const model of models) {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          let upstream = null;
+          let upstreamData = {};
+          try {
+            upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+                generationConfig: {
+                  responseMimeType: 'application/json',
+                  responseSchema,
+                  maxOutputTokens: 1500,
+                  thinkingConfig: { thinkingLevel: 'LOW' }
+                }
+              })
+            });
+            upstreamData = await upstream.json().catch(() => ({}));
+            if (upstream.ok) {
+              const responseText = upstreamData?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('') || '';
+              try {
+                result = JSON.parse(responseText);
+                geminiSucceeded = true;
+                break;
+              } catch {
+                providerErrors.push(`Gemini (${model}): resposta não veio em JSON válido.`);
+                break;
+              }
+            }
+            const detail = upstreamData?.error?.message || `HTTP ${upstream.status}`;
+            providerErrors.push(`Gemini (${model}): ${detail.slice(0, 160)}`);
+            // Só repete falhas temporárias; falha permanente segue para o próximo modelo/provedor.
+            if (![429, 500, 502, 503, 504].includes(upstream.status)) break;
+            if (attempt === 0) {
+              const retryAfter = Number(upstream.headers.get('retry-after')) || 0;
+              await wait(Math.min(3000, Math.max(900, retryAfter * 1000)));
+            }
+          } catch (error) {
+            providerErrors.push(`Gemini (${model}): ${String(error?.message || 'falha de conexão').slice(0, 120)}`);
+            if (attempt === 0) await wait(900);
+          }
         }
-
-        if (attempt < 1) {
-          const retryAfter = Number(upstream?.headers?.get('retry-after')) || 0;
-          await wait(Math.min(3000, Math.max(900 * (attempt + 1), retryAfter * 1000)));
-        }
+        if (geminiSucceeded || result) break;
       }
-      if (upstream?.ok) break;
-      if (upstream && ![429, 500, 502, 503, 504].includes(upstream.status)) break;
     }
 
-    if (!upstream?.ok) {
-      const message = upstreamData?.error?.message || 'O serviço Gemini está temporariamente indisponível.';
-      const status = lastStatus === 429 ? 429 : 503;
-      return jsonResponse(status, {
-        error: status === 429
-          ? 'A API Gemini atingiu temporariamente o limite de solicitações. Aguarde um pouco e tente novamente.'
-          : `A IA está temporariamente indisponível após as tentativas automáticas. ${message.slice(0, 180)}`
+    // 2) Fallback GroqCloud: executado se Gemini estiver ausente, inválido ou indisponível.
+    if (!result && groqApiKey) {
+      const groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+      try {
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${groqApiKey}`
+          },
+          body: JSON.stringify({
+            model: groqModel,
+            messages: [
+              { role: 'system', content: `${systemInstruction}\n\nResponda exclusivamente com um objeto JSON válido, sem bloco Markdown, com as propriedades durationMinutes (inteiro), activityTitle (texto), narration (texto) e npcReactions (array de objetos npcId/text).` },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 1500,
+            response_format: { type: 'json_object' }
+          })
+        });
+        const groqData = await groqResponse.json().catch(() => ({}));
+        if (!groqResponse.ok) {
+          const detail = groqData?.error?.message || `HTTP ${groqResponse.status}`;
+          providerErrors.push(`GroqCloud (${groqModel}): ${detail.slice(0, 180)}`);
+        } else {
+          const responseText = groqData?.choices?.[0]?.message?.content || '';
+          try {
+            result = JSON.parse(responseText);
+          } catch {
+            providerErrors.push(`GroqCloud (${groqModel}): resposta não veio em JSON válido.`);
+          }
+        }
+      } catch (error) {
+        providerErrors.push(`GroqCloud: ${String(error?.message || 'falha de conexão').slice(0, 140)}`);
+      }
+    }
+
+    if (!result) {
+      const details = providerErrors.length ? providerErrors.join(' | ').slice(0, 420) : 'Nenhum provedor conseguiu gerar uma resposta.';
+      return jsonResponse(503, {
+        error: `A IA não conseguiu responder. Verifique as chaves e os modelos configurados no Netlify. ${details}`
       });
     }
-
-    const responseText = upstreamData?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
-    let result;
-    try { result = JSON.parse(responseText); }
-    catch { return jsonResponse(502, { error: 'A IA retornou uma resposta em formato inesperado. Tente novamente.' }); }
 
     const presentIds = new Set(context.npcs.filter(n => n.present).map(n => n.id));
     const npcReactions = Array.isArray(result.npcReactions) ? result.npcReactions.slice(0, 5).map(r => ({
@@ -221,6 +267,6 @@ export default async (request) => {
       npcReactions
     });
   } catch {
-    return jsonResponse(502, { error: 'Não foi possível conectar ao Gemini. Verifique a implantação da função e tente novamente.' });
+    return jsonResponse(502, { error: 'Não foi possível conectar aos provedores de IA. Verifique a implantação da função e as variáveis de ambiente.' });
   }
 };
