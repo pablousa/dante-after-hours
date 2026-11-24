@@ -75,6 +75,14 @@ textarea{resize:none;min-height:84px}
 .top{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.88);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top,0px) + 10px) 20px 10px;display:flex;justify-content:space-between;align-items:center}
 .top .clock{font-family:var(--serif);font-size:26px;color:var(--gold-hi);line-height:1.1}
 .top .day{font-size:13px;color:var(--muted);text-align:right}
+.top-right{display:flex;align-items:center;gap:12px}
+.top-menu{width:40px;height:40px;flex:0 0 40px;border:1px solid var(--gold-lo);border-radius:12px;background:#17150f;color:var(--gold-hi);font-size:23px;line-height:1;cursor:pointer;touch-action:manipulation}
+.top-menu:active{transform:scale(.96)}
+.scene-combo{display:grid;grid-template-columns:1fr;gap:12px}
+.scene-combo .field{margin:0}
+.scene-combo textarea{min-height:76px}
+.scene-combo-note{font-size:12px;color:var(--muted);margin:0 0 12px}
+.busy-card{border-color:var(--gold);background:linear-gradient(145deg,#211d13,#141517)}.busy-title{display:flex;justify-content:space-between;align-items:center;gap:12px}.busy-time{font-family:var(--serif);font-size:24px;color:var(--gold-hi)}.busy-track{height:6px;border-radius:99px;background:#2a2c30;overflow:hidden;margin:12px 0}.busy-track span{display:block;height:100%;background:var(--gold);transition:width .4s ease}
 main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 .who{font-family:var(--serif);font-size:28px;color:var(--gold-hi);line-height:1.15}
 .bio{margin-top:10px;color:var(--text);font-style:italic;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -107,6 +115,207 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 #toast.bad{border-color:var(--danger)}
 #modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:24px}
 #modal .box{background:var(--graphite);border:1px solid var(--gold-lo);border-radius:16px;padding:20px;max-width:380px;width:100%}
+
+/* ---------- Smartphone in-game ---------- */
+#phoneLauncher{position:fixed;right:max(16px,calc((100vw - 480px)/2 + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 68px);z-index:8;width:54px;height:54px;border-radius:18px;border:1px solid var(--gold-lo);background:linear-gradient(145deg,#292a2d,#080809);color:var(--gold-hi);font-size:23px;box-shadow:0 8px 28px #0009;cursor:pointer;touch-action:manipulation}
+#phoneLauncher:active{transform:scale(.96)}
+#phoneOverlay{position:fixed;inset:0;z-index:50;background:#050506;display:flex;align-items:center;justify-content:center;padding:0}
+#phoneDevice{position:relative;width:min(100vw,430px);height:min(100dvh,900px);min-height:540px;overflow:hidden;background:#08090c;border:1px solid #44464c;border-radius:42px;box-shadow:0 24px 80px #000b;color:#f7f5ef}
+#phoneWallpaper{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 28%,#39352c 0%,#171719 35%,#08090c 75%),linear-gradient(150deg,#24211a,#08090c);overflow:hidden}
+#phoneWallpaper:before{content:"";position:absolute;width:125%;height:65%;left:-12%;bottom:-18%;border-radius:50%;border:1px solid #b99a5340;transform:rotate(-18deg);box-shadow:0 0 80px #c8a24a12}
+#phoneWallpaper:after{content:"";position:absolute;width:85%;height:50%;left:8%;bottom:-16%;border-radius:50%;border:1px solid #ffffff16;transform:rotate(22deg)}
+.phone-status{position:absolute;z-index:3;top:0;left:0;right:0;height:54px;padding:15px 25px 0;display:flex;justify-content:space-between;align-items:flex-start;font-size:13px;font-weight:650;letter-spacing:.02em}
+.phone-island{position:absolute;z-index:5;top:10px;left:50%;transform:translateX(-50%);width:112px;height:30px;border-radius:20px;background:#000;border:1px solid #171719}
+.phone-status-right{display:flex;gap:7px;align-items:center}
+.phone-battery{width:19px;height:9px;border:1px solid #eee;border-radius:3px;position:relative}
+.phone-battery:before{content:"";position:absolute;inset:1px 3px 1px 1px;background:#eee;border-radius:1px}
+.phone-battery:after{content:"";position:absolute;right:-3px;top:2px;width:2px;height:4px;background:#eee;border-radius:0 2px 2px 0}
+.phone-screen{position:absolute;inset:54px 0 30px;z-index:2;padding:18px 22px;overflow:auto}
+#phoneLock{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:45px}
+.phone-lock-date{font-size:15px;color:#e6dfce;letter-spacing:.04em}
+.phone-lock-time{font-family:var(--serif);font-size:clamp(76px,22vw,104px);line-height:1.08;letter-spacing:-.05em;color:#fff;margin:4px 0 22px;font-weight:400}
+.phone-lock-notice{width:100%;text-align:left;background:#ffffff16;border:1px solid #ffffff20;border-radius:17px;padding:13px 15px;margin-top:24px;backdrop-filter:blur(18px);font-size:13px}
+.phone-lock-notice strong{display:block;font-size:12px;color:#e6d4a6;margin-bottom:4px;letter-spacing:.08em}
+.phone-unlock{margin-top:auto;margin-bottom:22px;border:1px solid #ffffff66;background:#ffffff18;color:#fff;border-radius:24px;padding:12px 28px;font:600 14px var(--sans);min-height:46px}
+.phone-home-head{display:flex;justify-content:space-between;align-items:center;margin:8px 0 24px}
+.phone-home-head strong{font-family:var(--serif);font-size:23px;font-weight:400;letter-spacing:.08em}
+.phone-home-head span{font-size:12px;color:#c7c2b7}
+.phone-app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:25px 14px}
+.phone-app{border:0;background:none;color:#fff;display:flex;flex-direction:column;align-items:center;gap:7px;font:12px var(--sans);min-width:0;cursor:pointer;touch-action:manipulation}
+.phone-app-icon{width:58px;height:58px;border-radius:17px;display:grid;place-items:center;font-size:27px;box-shadow:0 6px 18px #0006;border:1px solid #ffffff20}
+.phone-app-icon.bank{background:linear-gradient(145deg,#e4c77b,#8c6825);color:#171207}
+.phone-app-icon.whatsapp{background:linear-gradient(145deg,#287d55,#164b36)}
+.phone-app-icon.settings{background:linear-gradient(145deg,#555b65,#24272e)}
+.phone-app-icon.notes{background:linear-gradient(145deg,#d4d0c5,#77746d);color:#222}
+.phone-dock{position:absolute;z-index:3;left:18px;right:18px;bottom:38px;min-height:82px;border:1px solid #ffffff25;border-radius:25px;background:#ffffff19;backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-evenly}
+.phone-dock .phone-app-icon{width:49px;height:49px;border-radius:15px}
+.phone-app-screen{position:absolute;inset:54px 0 30px;z-index:4;background:#08090c;overflow:auto;padding:18px 18px 30px}
+.phone-appbar{display:flex;align-items:center;justify-content:space-between;margin:2px 0 22px}
+.phone-appbar button{border:1px solid #4a4028;background:#17150f;color:var(--gold-hi);border-radius:12px;padding:9px 13px;font:13px var(--sans);min-height:40px}
+.phone-appbar h3{font-family:var(--serif);font-size:23px;color:#f0d99f;font-weight:400}
+.phone-bank-card{border:1px solid #8c7139;border-radius:20px;padding:20px;background:linear-gradient(135deg,#292319,#101114 75%);margin-bottom:15px}
+.phone-bank-card .eyebrow{font-size:11px;letter-spacing:.16em;color:#c8ad6d}
+.phone-bank-card .balance{font-family:var(--serif);font-size:31px;color:#f3e3b9;margin:7px 0}
+.phone-bank-card .subbalance{font-size:12px;color:#aaa49a}
+.phone-bank-row{display:flex;justify-content:space-between;gap:10px;padding:13px 0;border-top:1px solid #292a2d;font-size:13px}
+.phone-bank-row:first-child{border-top:0}
+.phone-bank-row b{font-weight:600;text-align:right}
+.phone-empty{border:1px dashed #48433a;border-radius:16px;padding:20px;text-align:center;color:#aaa49a;font-size:13px}
+.phone-home-indicator{position:absolute;z-index:10;bottom:9px;left:50%;transform:translateX(-50%);width:112px;height:5px;border-radius:5px;background:#fff;opacity:.8}
+.phone-close{position:absolute;z-index:8;top:13px;right:15px;width:32px;height:32px;border:1px solid #ffffff30;border-radius:50%;background:#111a;color:#fff;font-size:18px}
+.phone-back-home{display:block;width:100%;margin-top:22px;min-height:44px;border:1px solid #4a4028;border-radius:12px;background:#17150f;color:var(--gold-hi);font:14px var(--sans)}
+.phone-placeholder{border:1px solid #2c2d31;background:#121316;border-radius:18px;padding:22px;text-align:center;margin-top:18px}
+.phone-placeholder .big{font-size:38px;margin-bottom:12px}
+.phone-placeholder h4{font-family:var(--serif);font-size:22px;color:#ecd592;font-weight:400;margin:0 0 8px}
+.phone-placeholder p{font-size:13px;color:#aaa49a;line-height:1.6}
+@media(max-width:480px){#phoneDevice{width:100vw;height:100dvh;min-height:0;border:0;border-radius:0}#phoneLauncher{right:16px}}
+@media(min-width:481px){#phoneOverlay{background:#000e;padding:18px}}
+
+
+/* ---------- Banco digital: identidade violeta ---------- */
+.phone-app-icon.bank{background:linear-gradient(145deg,#9b35e8,#6a00b8);color:#fff}
+.phone-app-icon svg{width:28px;height:28px;display:block}
+#phoneLauncher{display:grid;place-items:center}
+#phoneLauncher svg{width:25px;height:25px}
+.phone-app-screen.nu-bank{padding:0;background:#f5f3f8;color:#241b2f;font-family:var(--sans)}
+.nu-bank{min-height:100%;background:#f5f3f8;color:#241b2f;padding-bottom:30px}
+.nu-header{background:linear-gradient(145deg,#8a05be,#5e00a5);color:#fff;padding:20px 20px 25px;border-radius:0 0 24px 24px}
+.nu-topline{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 25px}
+.nu-brand{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:750;letter-spacing:-.04em}
+.nu-brand-mark{width:34px;height:34px;border-radius:11px;background:#fff;color:#7900b9;display:grid;place-items:center}
+.nu-brand-mark svg{width:21px;height:21px}
+.nu-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#ffffff25;border:1px solid #ffffff55;font-size:13px;font-weight:700}
+.nu-greeting{font-size:14px;color:#f0dcfa;margin-bottom:3px}
+.nu-headline{font-size:23px;font-weight:700;letter-spacing:-.04em}
+.nu-balance-card{margin:-1px 16px 15px;position:relative;background:#fff;border-radius:18px;padding:19px 18px;box-shadow:0 5px 20px #2c144012}
+.nu-label{font-size:13px;color:#6c6473}
+.nu-balance-line{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px}
+.nu-balance{font-size:30px;line-height:1.2;font-weight:750;letter-spacing:-.055em;color:#241b2f;overflow-wrap:anywhere}
+.nu-eye{border:0;background:#f0eaf5;color:#6f00ad;border-radius:50%;width:38px;height:38px;display:grid;place-items:center}
+.nu-eye svg{width:19px;height:19px}
+.nu-shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:3px 13px 19px}
+.nu-shortcut{border:0;background:transparent;color:#2a2132;display:flex;flex-direction:column;align-items:center;gap:8px;font:600 11px var(--sans);padding:4px 0;min-width:0}
+.nu-shortcut-icon{width:53px;height:53px;border-radius:50%;background:#e9e0f0;color:#7000aa;display:grid;place-items:center}
+.nu-shortcut-icon svg{width:23px;height:23px}
+.nu-section{padding:0 16px;margin:0 0 14px}
+.nu-section-title{font-size:15px;font-weight:750;color:#292031;margin:0 0 9px}
+.nu-white-card{background:#fff;border-radius:17px;padding:16px;box-shadow:0 3px 14px #2c14400a}
+.nu-account-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #f0edf2;font-size:13px}
+.nu-account-row:first-child{border-top:0;padding-top:0}
+.nu-account-row:last-child{padding-bottom:0}
+.nu-account-row span{color:#716a78}
+.nu-account-row b{font-size:13px;color:#2c2334;text-align:right}
+.nu-link{border:0;background:none;color:#7500b5;font:700 13px var(--sans);padding:8px 0}
+.nu-transaction{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #f0edf2}
+.nu-transaction:first-child{border-top:0;padding-top:0}
+.nu-tx-icon{width:38px;height:38px;flex:0 0 38px;border-radius:13px;background:#f0eaf5;color:#7500b5;display:grid;place-items:center}
+.nu-tx-icon svg{width:18px;height:18px}
+.nu-tx-info{min-width:0;flex:1}
+.nu-tx-info b{display:block;font-size:13px;color:#2c2334;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nu-tx-info small{display:block;color:#89818e;font-size:11px;margin-top:2px}
+.nu-tx-value{font-size:12px;font-weight:750;white-space:nowrap;color:#292031}
+.nu-tx-value.in{color:#23834e}
+.nu-form-wrap{padding:18px 16px}
+.nu-back{border:0;background:transparent;color:#7200ae;font:700 13px var(--sans);padding:0;min-height:38px}
+.nu-page-title{font-size:23px;line-height:1.2;font-weight:750;letter-spacing:-.04em;color:#2a2031;margin:14px 0 6px}
+.nu-page-sub{font-size:13px;color:#756c7b;margin-bottom:20px}
+.nu-field{margin:0 0 15px}
+.nu-field label{display:block;color:#655c6e;font-size:12px;font-weight:650;margin:0 0 7px}
+.nu-field input,.nu-field select{width:100%;border:1px solid #ded8e4;background:#fff;color:#2a2031;border-radius:12px;padding:14px;font:16px var(--sans);min-height:50px}
+.nu-primary{width:100%;min-height:50px;border:0;border-radius:13px;background:#820ad1;color:#fff;font:700 15px var(--sans);box-shadow:0 5px 14px #820ad126;margin-top:5px}
+.nu-primary:disabled{opacity:.45}
+.nu-secondary{width:100%;min-height:48px;border:1px solid #d8c9e3;border-radius:13px;background:#fff;color:#7200ae;font:700 14px var(--sans);margin-top:10px}
+.nu-note{background:#eee7f4;border-radius:12px;padding:12px;color:#62566d;font-size:12px;line-height:1.5;margin:13px 0}
+.nu-empty{background:#fff;border-radius:16px;padding:22px;text-align:center;color:#817888;font-size:13px}
+.nu-receipt{background:#fff;border-radius:18px;padding:20px;text-align:center;box-shadow:0 3px 14px #2c14400a}
+.nu-receipt-check{width:54px;height:54px;margin:0 auto 12px;border-radius:50%;background:#e5f5eb;color:#24844e;display:grid;place-items:center}
+.nu-receipt-check svg{width:26px;height:26px}
+.nu-receipt-amount{font-size:29px;font-weight:800;letter-spacing:-.05em;color:#2b2033;margin:8px 0}
+.nu-receipt-detail{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #eeeaf1;text-align:left;font-size:12px}
+.nu-receipt-detail span{color:#817888}
+.nu-receipt-detail b{text-align:right;color:#2b2033}
+.nu-filter{display:flex;gap:6px;overflow:auto;margin:0 0 12px;padding-bottom:3px}
+.nu-filter button{white-space:nowrap;border:1px solid #ded6e5;border-radius:20px;padding:8px 12px;background:#fff;color:#706779;font:600 11px var(--sans)}
+.nu-filter button[aria-pressed="true"]{background:#820ad1;border-color:#820ad1;color:#fff}
+.nu-foot{font-size:10px;color:#958c9d;text-align:center;padding:8px 12px 0}
+@media(max-width:380px){.nu-shortcuts{gap:2px;padding-left:8px;padding-right:8px}.nu-shortcut{font-size:10px}.nu-shortcut-icon{width:48px;height:48px}.nu-balance{font-size:27px}}
+
+/* ---------- WhatsApp interno ---------- */
+.phone-app-screen.wa-app{padding:0;overflow:hidden;background:#f0f2f5;color:#182229}
+.wa-shell{height:100%;min-height:100%;display:flex;flex-direction:column;background:#f0f2f5;color:#182229}
+.wa-top{background:#075e54;color:#fff;padding:15px 16px 0;flex:0 0 auto}
+.wa-topline{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wa-topline strong{font-size:20px;font-weight:700;letter-spacing:-.04em}
+.wa-top-actions{display:flex;gap:18px;align-items:center;color:#fff}
+.wa-top-actions svg{width:20px;height:20px}
+.wa-tabs{display:flex;gap:22px;margin-top:18px;font-size:12px;font-weight:700;color:#c4ded9}
+.wa-tabs span{padding:0 0 11px}
+.wa-tabs .active{color:#fff;border-bottom:3px solid #fff}
+.wa-list{flex:1;overflow-y:auto;background:#fff}
+.wa-contact{width:100%;display:flex;align-items:center;gap:12px;padding:12px 15px;border:0;border-bottom:1px solid #edf0f1;background:#fff;text-align:left;color:#182229;min-height:75px}
+.wa-avatar{width:49px;height:49px;flex:0 0 49px;border-radius:50%;display:grid;place-items:center;background:#dce9e5;color:#075e54;font-size:17px;font-weight:750}
+.wa-contact-main{min-width:0;flex:1}
+.wa-contact-line{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wa-contact-line b{font-size:14px;font-weight:650}
+.wa-contact-line small{font-size:10px;color:#8b969c;white-space:nowrap}
+.wa-preview{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#77838a;font-size:12px;margin-top:5px}
+.wa-home-return{border:0;background:none;color:#fff;font-size:13px;padding:8px 0;min-height:34px}
+.wa-chat{height:100%;display:flex;flex-direction:column;background:#e9e2d8}
+.wa-chat-head{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#075e54;color:#fff;flex:0 0 auto}
+.wa-chat-head button{border:0;background:none;color:#fff;font-size:25px;padding:0 5px;min-height:38px}
+.wa-chat-head .wa-avatar{width:38px;height:38px;flex-basis:38px;background:#dce9e5;color:#075e54;font-size:14px}
+.wa-chat-name{min-width:0;flex:1}
+.wa-chat-name b{display:block;font-size:14px}
+.wa-chat-name small{display:block;color:#d0e5e1;font-size:10px;margin-top:1px}
+.wa-messages{flex:1;overflow-y:auto;padding:14px 11px;display:flex;flex-direction:column;gap:7px;background-color:#e9e2d8;background-image:radial-gradient(#ffffff35 1px,transparent 1px);background-size:18px 18px}
+.wa-bubble{max-width:84%;padding:8px 10px 5px;border-radius:10px;font-size:13px;line-height:1.4;overflow-wrap:anywhere;box-shadow:0 1px 1px #00000012}
+.wa-bubble.player{align-self:flex-end;background:#d9fdd3;border-top-right-radius:3px;color:#17251c}
+.wa-bubble.npc{align-self:flex-start;background:#fff;border-top-left-radius:3px;color:#253039}
+.wa-bubble time{display:block;text-align:right;color:#84918a;font-size:9px;margin-top:3px}
+.wa-date-pill{align-self:center;background:#fff9;padding:5px 10px;border-radius:8px;color:#78827e;font-size:10px;margin:2px 0 6px}
+.wa-compose{display:flex;align-items:flex-end;gap:8px;padding:8px;background:#f0f2f5;flex:0 0 auto}
+.wa-compose input{flex:1;min-width:0;border:0;border-radius:22px;background:#fff;padding:12px 15px;color:#1e2a30;font:14px var(--sans);min-height:44px}
+.wa-send{width:44px;height:44px;flex:0 0 44px;border:0;border-radius:50%;background:#087e69;color:#fff;display:grid;place-items:center}
+.wa-send svg{width:20px;height:20px}
+.wa-empty{padding:30px 22px;text-align:center;color:#7d898e;font-size:12px}\n.wa-ai-note{padding:8px 12px;background:#fff6d8;color:#796b46;font-size:10px;line-height:1.4;text-align:center;border-bottom:1px solid #e7ddc4}
+.wa-empty b{display:block;color:#536169;font-size:14px;margin-bottom:6px}
+@media(max-width:380px){.wa-contact{padding:10px 12px}.wa-avatar{width:45px;height:45px;flex-basis:45px}}
+
+
+
+/* ---------- Mundo RPG / cena persistente ---------- */
+.world-hero{border:1px solid var(--gold-lo);border-radius:18px;padding:22px 20px;margin-bottom:14px;background:radial-gradient(120% 100% at 100% 0%,#302718 0%,#171513 46%,#101113 100%);box-shadow:inset 0 1px #ffffff08}
+.world-eyebrow{font-size:10px;letter-spacing:.2em;color:var(--gold);font-weight:700}
+.world-time{font-family:var(--serif);font-size:52px;line-height:1.1;color:var(--gold-hi);margin-top:8px}
+.world-date{font-size:12px;color:var(--muted);margin-bottom:22px}
+.world-hero h1{font-family:var(--serif);font-size:28px;color:var(--text);line-height:1.15}
+.world-area{font-size:13px;color:var(--gold-hi);margin-top:5px}
+.world-hero p{font-size:14px;color:#c1bdb3;margin:14px 0 0;line-height:1.6}
+.world-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.world-section-head h2{margin-bottom:10px}
+.world-section-head span{font-size:11px;color:var(--muted)}
+.world-person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid var(--line)}
+.world-person:first-of-type{border-top:0}
+.world-avatar{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#4b3c22,#1b1a17);border:1px solid var(--gold-lo);color:var(--gold-hi);font-family:var(--serif);font-size:19px}
+.world-person-main{min-width:0;flex:1}
+.world-person-main b{display:block;font-size:14px;color:var(--text)}
+.world-person-main small{display:block;font-size:11px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+.world-status{font-size:10px;color:#a8c39b;border:1px solid #42543c;border-radius:20px;padding:4px 8px;white-space:nowrap}
+.world-vehicle{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.world-vehicle b,.world-deadline b{display:block;color:var(--gold-hi);font-size:15px}
+.world-vehicle small,.world-deadline small{display:block;color:var(--muted);font-size:11px}
+.world-deadline{text-align:right;white-space:nowrap}
+.world-away{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+.world-away:first-of-type{border-top:0}
+.world-away span{color:var(--muted);font-size:11px;text-align:right}
+.world-person-card{align-items:flex-start}
+.scene-log-entry{padding:10px 0;border-top:1px solid var(--line);font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.scene-log-entry:first-of-type{border-top:0}
+.scene-log-entry time{display:block;font-size:10px;color:var(--gold-lo);margin-bottom:3px}
+#sceneEntryForm .field{margin-bottom:12px}
+#sceneEntryForm textarea{min-height:76px}
+@media(max-width:360px){.world-time{font-size:46px}.world-hero{padding:18px 16px}.world-vehicle{align-items:flex-start}}
+
 </style>
 </head>
 <body>
@@ -151,10 +360,46 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 <section id="game" class="screen" hidden>
   <header class="top">
     <div><div class="clock" id="hClock"></div><div class="small muted" id="hPeriod"></div></div>
-    <div class="day"><div id="hDay"></div><div class="save" id="hSave"></div></div>
+    <div class="top-right">
+      <div class="day"><div id="hDay"></div><div class="save" id="hSave"></div></div>
+      <button class="top-menu" type="button" data-act="menu" aria-label="Voltar à tela inicial" title="Voltar à tela inicial">⌂</button>
+    </div>
   </header>
   <main id="view"></main>
   <nav class="nav" aria-label="Navegação principal"><div id="nav"></div></nav>
+</section>
+
+
+<!-- Smartphone do jogo -->
+<button id="phoneLauncher" type="button" aria-label="Abrir celular" title="Celular" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="3"/><path d="M9 5h6M10 18.5h4"/></svg></button>
+<section id="phoneOverlay" hidden aria-label="Celular de Dante">
+  <div id="phoneDevice">
+    <div id="phoneWallpaper"></div>
+    <div class="phone-status"><span id="phoneStatusTime">21:00</span><span class="phone-island" aria-hidden="true"></span><span class="phone-status-right"><span>▮▮▮</span><span>Wi-Fi</span><span class="phone-battery"></span></span></div>
+    <button class="phone-close" type="button" data-phone="close" aria-label="Fechar celular">×</button>
+    <div class="phone-screen" id="phoneLock">
+      <div class="phone-lock-date" id="phoneLockDate">Sexta-feira, 5 de março</div>
+      <div class="phone-lock-time" id="phoneLockTime">21:00</div>
+      <div class="phone-lock-notice"><strong>DANTE — AFTER HOURS</strong>Seu telefone está pronto.</div>
+      <button class="phone-unlock" type="button" data-phone="unlock">Desbloquear</button>
+    </div>
+    <div class="phone-screen" id="phoneHome" hidden>
+      <div class="phone-home-head"><strong>DANTE</strong><span id="phoneHomeDate"></span></div>
+      <div class="phone-app-grid">
+        <button class="phone-app" data-app="bank"><span class="phone-app-icon bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18L12 3 3 9Z"/><path d="M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18"/></svg></span><span>Banco</span></button>
+        <button class="phone-app" data-app="whatsapp"><span class="phone-app-icon whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L4 20l1.1-3.9a8.2 8.2 0 1 1 15.1-4.4Z"/><path d="M9 8.5c.3-.5.6-.5.9-.1l.8 1.2c.2.3.1.5-.1.8l-.5.6c.6 1.1 1.4 1.9 2.6 2.5l.6-.7c.2-.2.4-.3.7-.1l1.2.7c.4.2.4.5.2.9-.4.8-1.2 1.2-2.1 1.1-2.5-.4-5.4-3.2-5.7-5.7-.1-.5.3-1 .7-1.2Z"/></svg></span><span>WhatsApp</span></button>
+        <button class="phone-app" data-app="settings"><span class="phone-app-icon settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1a1.7 1.7 0 1 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 1 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 1 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 1 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 1 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2V2a1.7 1.7 0 1 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 1 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 1 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/></svg></span><span>Ajustes</span></button>
+        <button class="phone-app" data-app="notes"><span class="phone-app-icon notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span>Notas</span></button>
+      </div>
+    </div>
+    <div class="phone-dock" id="phoneDock" hidden>
+      <button class="phone-app" data-app="bank" aria-label="Banco"><span class="phone-app-icon bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18L12 3 3 9Z"/><path d="M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18"/></svg></span></button>
+      <button class="phone-app" data-app="whatsapp" aria-label="WhatsApp"><span class="phone-app-icon whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L4 20l1.1-3.9a8.2 8.2 0 1 1 15.1-4.4Z"/><path d="M9 8.5c.3-.5.6-.5.9-.1l.8 1.2c.2.3.1.5-.1.8l-.5.6c.6 1.1 1.4 1.9 2.6 2.5l.6-.7c.2-.2.4-.3.7-.1l1.2.7c.4.2.4.5.2.9-.4.8-1.2 1.2-2.1 1.1-2.5-.4-5.4-3.2-5.7-5.7-.1-.5.3-1 .7-1.2Z"/></svg></span></button>
+      <button class="phone-app" data-app="settings" aria-label="Ajustes"><span class="phone-app-icon settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1a1.7 1.7 0 1 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 1 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 1 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 1 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 1 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2V2a1.7 1.7 0 1 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 1 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 1 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/></svg></span></button>
+    </div>
+    <div class="phone-app-screen" id="phoneAppScreen" hidden></div>
+    <div class="phone-home-indicator" aria-hidden="true"></div>
+  </div>
 </section>
 
 <div id="toast" role="status" aria-live="polite" hidden></div>
@@ -163,7 +408,7 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 <script>
 'use strict';
 /* ==========================================================
-   DANTE — AFTER HOURS  ·  v0.3
+   DANTE — AFTER HOURS  ·  v1.0
    Organização: Config → Util → Tempo → Estado/Salvamento →
    Ações do jogo → Views (registro) → Interface → Início
    Para criar um sistema novo: adicione um item em VIEWS e
@@ -194,7 +439,7 @@ const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
 const DIAS = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const DAY0 = Date.UTC(2027, 2, 5) / 60000;   // sexta-feira, 5 de março de 2027
-const START = DAY0 + 21 * 60;                // o jogo começa às 21:00
+const START = Date.UTC(2027, 2, 8) / 60000 + 17 * 60 + 3; // segunda-feira, 17:03
 const asDate = m => new Date(m * 60000);
 const fmtTime = m => { const d = asDate(m); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); };
 const fmtDate = m => { const d = asDate(m); return cap(DIAS[d.getUTCDay()]) + ', ' + d.getUTCDate() + ' de ' + MESES[d.getUTCMonth()] + ' de ' + d.getUTCFullYear(); };
@@ -210,7 +455,22 @@ let draft = null;        // personagem em criação
 try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch (e) { storageOk = false; }
 
 function newGame(player) {
-  return migrate(Object.assign({ v: SAVE_VERSION, player, time: START, diary: [], created: Date.now() }, finBlank()));
+  const d = Object.assign({ v: SAVE_VERSION, player, time: START, diary: [], created: Date.now(), world: worldBlank(START) }, finBlank());
+  return grantStartingBalance(migrate(d));
+}
+function grantStartingBalance(d) {
+  if (!d || d.starterDepositGranted) return d;
+  const amount = 35000; // US$ 350,00 em centavos
+  if (!Number.isSafeInteger(d.bank) || d.bank < 0) d.bank = 0;
+  if (d.bank + amount <= 99999999999) {
+    d.bank += amount;
+    if (!Array.isArray(d.tx)) d.tx = [];
+    if (!Number.isSafeInteger(d.nextTx) || d.nextTx < 1) d.nextTx = 1;
+    d.tx.push({ id: d.nextTx++, t: Number.isFinite(d.time) ? d.time : START, type: 'income', cat: 'Saldo inicial', desc: 'Depósito inicial', amt: amount, acc: 'bank', w: Number(d.wallet) || 0, b: d.bank });
+    if (d.tx.length > 1000) d.tx.shift();
+  }
+  d.starterDepositGranted = true;
+  return d;
 }
 function finBlank() {
   return { wallet: 0, bank: 0, totIn: 0, totOut: 0, tx: [], rec: [], pend: [], nextTx: 1, nextRec: 1, nextPend: 1 };
@@ -230,12 +490,21 @@ function migrate(d) {
     d.npcs = (Array.isArray(d.npcs) ? d.npcs : []).filter(q => q && typeof q.id === 'string' && typeof q.name === 'string' && typeof q.occ === 'string');
     if (!d.npcs.length) d.npcs = JSON.parse(JSON.stringify(NPC_SEED));
     d.npcs.forEach(q => { q.cash = n(q.cash); q.income = n(q.income); q.bond = clamp(Number(q.bond) || 0, 0, 100); q.gen = clamp(Number(q.gen) || 0, 0, 100); q.rel = clamp(Number(q.rel) || 0, 0, 100); q.cd = Number(q.cd) || 0; });
+    // Acrescenta o elenco do RPG sem apagar NPCs ou relações de saves antigos.
+    NPC_SEED.forEach(seed => {
+      if (!d.npcs.some(q => q.id === seed.id)) d.npcs.push(JSON.parse(JSON.stringify(seed)));
+    });
+    d.npcs.forEach(q => { if (!q.locationId) q.locationId = npcDefaultLocation(q.id); });
+    d.world = normalizeWorld(d.world, d.time);
     d.debts = (Array.isArray(d.debts) ? d.debts : []).filter(x => x && Number.isSafeInteger(x.amt) && x.amt > 0 && ['owe', 'owed'].includes(x.dir) && Number.isFinite(x.due) && d.npcs.some(q => q.id === x.npc)).map(x => Object.assign(x, { id: n(x.id), evt: !!x.evt }));
     d.events = (Array.isArray(d.events) ? d.events : []).filter(x => x && typeof x.type === 'string' && typeof x.txt === 'string' && Number.isFinite(x.t) && (!x.debt || d.debts.some(y => y.id === x.debt)) && (!x.npc || d.npcs.some(q => q.id === x.npc)));
     d.nextDebt = Math.max(n(d.nextDebt), d.debts.reduce((m, x) => Math.max(m, x.id), 0) + 1);
     d.nextEv = Math.max(n(d.nextEv), d.events.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1);
     d.seed = Number.isInteger(d.seed) ? d.seed : (Date.now() & 0x7fffffff);
     d.lastMeal = Number.isInteger(d.lastMeal) ? d.lastMeal : -1;
+    if (!d.lastPixReceipt || typeof d.lastPixReceipt !== 'object') d.lastPixReceipt = null;
+    d.messages = (Array.isArray(d.messages) ? d.messages : []).filter(m => m && typeof m.npc === 'string' && ['player','npc'].includes(m.from) && typeof m.text === 'string' && Number.isFinite(m.t)).slice(-1000);
+    d.nextMessageId = Math.max(n(d.nextMessageId), d.messages.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1);
     d.nextTx = Math.max(n(d.nextTx), d.tx.reduce((m, x) => Math.max(m, x.id), 0) + 1);
     d.nextRec = Math.max(n(d.nextRec), d.rec.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1);
     d.nextPend = Math.max(n(d.nextPend), d.pend.reduce((m, x) => Math.max(m, n(x.id)), 0) + 1);
@@ -254,6 +523,7 @@ function loadSave() {
     const d = migrate(JSON.parse(raw));
     if (!validSave(d)) return null;
     ATTRS.forEach(a => { d.player.attrs[a.id] = clamp(Math.round(Number(d.player.attrs[a.id]) || 1), 1, MAX_ATTR); });
+    grantStartingBalance(d);
     return d;
   } catch (e) { return null; }
 }
@@ -273,16 +543,40 @@ function remember(text, t) {
   G.diary.push({ t: t === undefined ? G.time : t, text });
   if (G.diary.length > 500) G.diary.shift();
 }
+function completeActiveAction() {
+  const a = G && G.world && G.world.activeAction;
+  if (!a) return;
+  const t = G.time;
+  const addLog = text => {
+    G.world.sceneLog.push({ id: G.world.nextSceneId++, kind: 'speech', text, t });
+    remember(text, t);
+  };
+  if (a.narration) addLog('Resultado: ' + a.narration);
+  (a.npcReactions || []).forEach(r => {
+    const npc = G.npcs.find(q => q.id === r.npcId && q.locationId === G.world.locationId);
+    if (npc && r.text) addLog(npc.name + ': “' + r.text + '”');
+  });
+  if (G.world.sceneLog.length > 300) G.world.sceneLog.splice(0, G.world.sceneLog.length - 300);
+  G.world.activeAction = null;
+  remember('Dante concluiu: ' + a.title + '.');
+}
 function advanceTime(mins) {
   if (!Number.isInteger(mins) || mins <= 0 || mins > 44640) return false;
+  if (G.world && G.world.activeAction) {
+    const remaining = G.world.activeAction.endTime - G.time;
+    if (remaining <= 0) { completeActiveAction(); commit(); renderGame(); return false; }
+    mins = Math.min(mins, remaining);
+  }
   const t0 = G.time, before = dayIndex(G.time), ev0 = G.nextEv;
   G.time += mins;
   const after = dayIndex(G.time);
   for (let d = before + 1; d <= after; d++) remember('Começa o dia ' + (d + 1) + '.', DAY0 + d * 1440);
   worldTick(t0, G.time);
+  if (G.world && G.world.activeAction && G.time >= G.world.activeAction.endTime) completeActiveAction();
   const ok = commit(); renderGame();
   if (G.nextEv > ev0) toast('Algo aconteceu. Veja no topo da tela.');
   if (!ok) toast('Atenção: não foi possível salvar o progresso.', true);
+  if (!G.world.activeAction && t0 !== G.time) { /* a atividade terminou neste avanço */ }
   return true;
 }
 function minutesUntil(hour) {
@@ -346,10 +640,80 @@ function getTransactionHistory(f) { return G.tx.filter(x => f === 'all' || x.typ
    Nada aqui mexe em saldo diretamente: tudo passa por addMoney / spendMoney / transferMoney. */
 const LOANCATS = new Set(['Empréstimo', 'Empréstimo concedido', 'Dívida paga', 'Dívida recebida']);  // não contam como receita/despesa
 const NPC_SEED = [
-  { id: 'marco', name: 'Marco', occ: 'Mecânico', cash: 21000, income: 42000, bond: 55, gen: 55, rel: 60, gigs: true },
-  { id: 'lia', name: 'Lia', occ: 'Bartender', cash: 9000, income: 38000, bond: 45, gen: 70, rel: 40 },
-  { id: 'vega', name: 'Sr. Vega', occ: 'Dono de oficina', cash: 120000, income: 90000, bond: 25, gen: 30, rel: 92, gigs: true }
+  { id: 'emily', name: 'Emily Carter', occ: 'Designer gráfica · 23 anos', cash: 85000, income: 420000, bond: 72, gen: 68, rel: 76, locationId: 'apartment_long_beach', role: 'Companheira; relação carinhosa em desenvolvimento' },
+  { id: 'frank', name: 'Frank Miller', occ: 'Mecânico · chefe e mentor', cash: 180000, income: 620000, bond: 58, gen: 72, rel: 85, locationId: 'westside_auto_repair', gigs: true, role: 'Chefe de Dante na Westside Auto Repair' },
+  { id: 'ryan', name: 'Ryan Mitchell', occ: 'Entusiasta automotivo', cash: 240000, income: 700000, bond: 68, gen: 76, rel: 70, locationId: 'off_scene', role: 'Amigo; proprietário de um Toyota Supra MK4' },
+  { id: 'chris', name: 'Chris', occ: 'Possível cliente', cash: 300000, income: 0, bond: 25, gen: 55, rel: 50, locationId: 'off_scene', role: 'Possível cliente; proprietário de um Ford Mustang GT' }
 ];
+
+const WORLD_PLACES = {
+  apartment_long_beach: { name: 'Apartamento de Dante', area: 'Long Beach, Califórnia', description: 'Seu apartamento. Um espaço privado, longe do movimento da oficina.' },
+  westside_auto_repair: { name: 'Westside Auto Repair', area: 'Los Angeles, Califórnia', description: 'A oficina onde Frank trabalha e orienta Dante.' },
+  long_beach_streets: { name: 'Ruas de Long Beach', area: 'Long Beach, Califórnia', description: 'A cidade continua em movimento ao redor.' },
+  rental_return: { name: 'Locadora', area: 'Long Beach, Califórnia', description: 'Local de devolução do veículo alugado.' },
+  off_scene: { name: 'Fora de cena', area: 'Los Angeles, Califórnia', description: 'A pessoa está em outro lugar; sua posição atual ainda não foi estabelecida.' }
+};
+
+function npcDefaultLocation(id) {
+  return ({ emily: 'apartment_long_beach', frank: 'westside_auto_repair', ryan: 'off_scene', chris: 'off_scene', marco: 'westside_auto_repair', lia: 'off_scene', vega: 'westside_auto_repair' })[id] || 'off_scene';
+}
+function worldBlank(t) {
+  const now = Number.isFinite(t) ? t : START;
+  let returnAt = Math.floor(now / 1440) * 1440 + 21 * 60;
+  if (returnAt <= now) returnAt += 1440;
+  return {
+    locationId: 'apartment_long_beach',
+    vehicle: { name: 'Hyundai Accent', year: 2019, status: 'Alugado', returnAt },
+    sceneLog: [],
+    nextSceneId: 1,
+    createdAt: now
+  };
+}
+function normalizeWorld(w, t) {
+  const base = worldBlank(t);
+  if (!w || typeof w !== 'object') return base;
+  const validPlaces = Object.keys(WORLD_PLACES);
+  if (!validPlaces.includes(w.locationId)) w.locationId = base.locationId;
+  if (!w.vehicle || typeof w.vehicle !== 'object') w.vehicle = base.vehicle;
+  else {
+    w.vehicle.name = typeof w.vehicle.name === 'string' ? w.vehicle.name : base.vehicle.name;
+    w.vehicle.year = Number.isInteger(w.vehicle.year) ? w.vehicle.year : base.vehicle.year;
+    w.vehicle.status = typeof w.vehicle.status === 'string' ? w.vehicle.status : base.vehicle.status;
+    w.vehicle.returnAt = Number.isFinite(w.vehicle.returnAt) ? w.vehicle.returnAt : base.vehicle.returnAt;
+  }
+  w.sceneLog = Array.isArray(w.sceneLog) ? w.sceneLog.filter(x => x && ['action','speech'].includes(x.kind) && typeof x.text === 'string' && Number.isFinite(x.t)).slice(-300) : [];
+  w.nextSceneId = Math.max(Number.isSafeInteger(w.nextSceneId) ? w.nextSceneId : 1, w.sceneLog.reduce((m,x) => Math.max(m, Number(x.id)||0), 0) + 1);
+  w.createdAt = Number.isFinite(w.createdAt) ? w.createdAt : base.createdAt;
+  if (w.activeAction && typeof w.activeAction === 'object' && Number.isFinite(w.activeAction.endTime) && w.activeAction.endTime > (Number.isFinite(t) ? t : START)) {
+    w.activeAction = {
+      title: String(w.activeAction.title || 'Atividade em andamento').slice(0, 100),
+      narration: String(w.activeAction.narration || '').slice(0, 1200),
+      startTime: Number.isFinite(w.activeAction.startTime) ? w.activeAction.startTime : (Number.isFinite(t) ? t : START),
+      endTime: Math.min(w.activeAction.endTime, (Number.isFinite(t) ? t : START) + 480),
+      durationMinutes: clamp(Math.round(Number(w.activeAction.durationMinutes) || 1), 1, 480),
+      npcReactions: Array.isArray(w.activeAction.npcReactions) ? w.activeAction.npcReactions.slice(0, 5).filter(x => x && typeof x.npcId === 'string' && typeof x.text === 'string').map(x => ({ npcId: x.npcId.slice(0, 40), text: x.text.slice(0, 500) })) : []
+    };
+  } else w.activeAction = null;
+  return w;
+}
+function addSceneEntries(actionRaw, speechRaw) {
+  if (!G || !G.world) return false;
+  const action = String(actionRaw || '').trim().replace(/^\\*\\s*/, '').trim().slice(0, 500);
+  const speech = String(speechRaw || '').trim().replace(/^-\\s*/, '').trim().slice(0, 500);
+  if (!action && !speech) return false;
+  const timestamp = G.time;
+  if (action) {
+    G.world.sceneLog.push({ id: G.world.nextSceneId++, kind: 'action', text: '* ' + action, t: timestamp });
+    remember('Ação declarada: ' + action, timestamp);
+  }
+  if (speech) {
+    G.world.sceneLog.push({ id: G.world.nextSceneId++, kind: 'speech', text: '- ' + speech, t: timestamp });
+    remember('Fala de Dante: ' + speech, timestamp);
+  }
+  if (G.world.sceneLog.length > 300) G.world.sceneLog.splice(0, G.world.sceneLog.length - 300);
+  commit();
+  return true;
+}
 const BILLS = ['O carregador do seu celular parou de funcionar.', 'A conta de internet chegou mais alta que o normal.', 'A tela do seu celular rachou e precisa de conserto.'];
 const npcOf = id => G.npcs.find(q => q.id === id);
 const addBond = (q, d) => { q.bond = clamp(q.bond + d, 0, 100); };
@@ -562,53 +926,134 @@ const FSUB = {
   },
 };
 
+let sceneRequestPending = false;
+function busyBannerHTML() {
+  const a = G && G.world && G.world.activeAction;
+  if (!a) return '';
+  const total = Math.max(1, a.endTime - a.startTime);
+  const left = Math.max(0, a.endTime - G.time);
+  const done = clamp((total - left) / total * 100, 0, 100);
+  const h = Math.floor(left / 60), m = left % 60;
+  const remaining = h ? `${h}h ${m}min` : `${m} min`;
+  return `<section class="card busy-card"><div class="busy-title"><div><div class="muted small">DANTE ESTÁ OCUPADO</div><h2 style="margin:2px 0 0">${esc(a.title)}</h2></div><div class="busy-time">${remaining}</div></div><div class="busy-track"><span style="width:${done}%"></span></div><p class="muted small" style="margin:0">A atividade termina às ${fmtTime(a.endTime)}. Você pode consultar as telas, mas Dante não pode iniciar outra atividade até concluir.</p></section>`;
+}
+async function submitSceneToAI(action, speech) {
+  if (!G || sceneRequestPending || (G.world && G.world.activeAction)) return;
+  const targetGame = G;
+  sceneRequestPending = true;
+  const submit = $('#sceneEntryForm button[type="submit"]');
+  if (submit) { submit.disabled = true; submit.textContent = 'Analisando a ação…'; }
+  try {
+    const place = WORLD_PLACES[G.world.locationId] || WORLD_PLACES.off_scene;
+    const payload = {
+      action: String(action || '').trim().slice(0, 500),
+      speech: String(speech || '').trim().slice(0, 500),
+      gameTime: fmtDate(G.time) + ' ' + fmtTime(G.time),
+      location: { name: place.name, area: place.area, description: place.description },
+      player: { name: G.player.name, age: G.player.age, bio: G.player.bio, attributes: G.player.attrs },
+      vehicle: G.world.vehicle,
+      npcs: G.npcs.map(q => ({ id: q.id, name: q.name, occupation: q.occ, role: q.role || '', relationship: q.bond, locationId: q.locationId, present: q.locationId === G.world.locationId })),
+      recentScene: G.world.sceneLog.slice(-12).map(x => ({ kind: x.kind, text: x.text, time: fmtTime(x.t) }))
+    };
+    const response = await fetch('/.netlify/functions/game-ai', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Não foi possível consultar a IA.');
+    if (G !== targetGame) return;
+    const duration = clamp(Math.round(Number(data.durationMinutes) || 1), 1, 480);
+    const title = String(data.activityTitle || 'Atividade de Dante').slice(0, 100);
+    const narration = String(data.narration || 'A atividade foi concluída.').slice(0, 1200);
+    const reactions = Array.isArray(data.npcReactions) ? data.npcReactions.slice(0, 5).map(x => ({ npcId: String(x.npcId || '').slice(0, 40), text: String(x.text || '').slice(0, 500) })).filter(x => x.npcId && x.text && G.npcs.some(q => q.id === x.npcId && q.locationId === G.world.locationId)) : [];
+    if (!addSceneEntries(action, speech)) throw new Error('Ação vazia.');
+    G.world.activeAction = { title, narration, startTime: G.time, endTime: G.time + duration, durationMinutes: duration, npcReactions: reactions };
+    remember('Começou a atividade: ' + title + ' (aproximadamente ' + duration + ' minutos).');
+    commit();
+    renderGame();
+    toast(`Dante ficará ocupado por ${duration} minuto${duration === 1 ? '' : 's'}.`);
+  } catch (err) {
+    if (G === targetGame) {
+      renderGame();
+      toast(err && err.message ? err.message : 'Falha ao conectar com a IA. Tente novamente.', true);
+    }
+  } finally {
+    sceneRequestPending = false;
+  }
+}
+
 const VIEWS = {
   painel: {
-    label: 'Painel',
+    label: 'Mundo',
     render() {
-      const p = G.player;
-      const attrs = ATTRS.map(a => `<div class="attr"><span class="nm">${a.nome}</span><span class="pips" aria-label="${p.attrs[a.id]} de ${MAX_ATTR}">${pips(p.attrs[a.id])}</span><span class="ds">${a.desc}</span></div>`).join('');
+      const w = G.world || worldBlank(G.time);
+      const place = WORLD_PLACES[w.locationId] || WORLD_PLACES.off_scene;
+      const present = G.npcs.filter(q => q.locationId === w.locationId);
+      const elsewhere = G.npcs.filter(q => q.locationId !== w.locationId);
+      const vehicle = w.vehicle;
+      const due = vehicle && Number.isFinite(vehicle.returnAt) ? fmtTime(vehicle.returnAt) : null;
+      const log = (w.sceneLog || []).slice(-12).map(e =>
+        `<div class="scene-log-entry"><time>${fmtDate(e.t)} · ${fmtTime(e.t)}</time><span>${esc(e.text)}</span></div>`).join('');
       return `
-      <section class="card">
-        <div class="who">${esc(p.name)}</div>
-        <div class="muted small">${p.age} anos</div>
-        ${p.bio ? `<div class="bio">${esc(p.bio)}</div>` : ''}
+      <section class="world-hero">
+        <div class="world-eyebrow">CENA ATUAL · LOS ANGELES</div>
+        <div class="world-time">${fmtTime(G.time)}</div>
+        <div class="world-date">${fmtDate(G.time)}</div>
+        <h1>${esc(place.name)}</h1>
+        <div class="world-area">${esc(place.area)}</div>
+        <p>${esc(place.description)}</p>
       </section>
       <section class="card">
-        <h2>Agora</h2>
-        <div class="date">${fmtDate(G.time)}</div>
-        <div class="muted small">${fmtTime(G.time)} · ${period(G.time).toLowerCase()} · dia ${dayIndex(G.time) + 1}</div>
+        <div class="world-section-head"><h2>Quem está aqui</h2><span>${present.length} ${present.length === 1 ? 'pessoa' : 'pessoas'}</span></div>
+        ${present.length ? present.map(q => `<div class="world-person"><div class="world-avatar">${esc(q.name.slice(0,1))}</div><div class="world-person-main"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></div><span class="world-status">Presente</span></div>`).join('') : '<p class="muted small">Você está sozinho neste local.</p>'}
+      </section>
+      <section class="card">
+        <h2>Seu veículo</h2>
+        <div class="world-vehicle"><div><b>${esc(vehicle.name)} ${vehicle.year}</b><small>${esc(vehicle.status)} · não é seu veículo próprio</small></div><div class="world-deadline"><small>Devolução</small><b>${due || '—'}</b></div></div>
+        <p class="muted small" style="margin:10px 0 0">A locação precisa ser encerrada hoje até as 21:00.</p>
+      </section>
+      <section class="card">
+        <h2>O mundo ao redor</h2>
+        ${elsewhere.map(q => {
+          const loc = WORLD_PLACES[q.locationId] || WORLD_PLACES.off_scene;
+          return `<div class="world-away"><b>${esc(q.name)}</b><span>${esc(loc.name)} · ${esc(q.occ)}</span></div>`;
+        }).join('') || '<p class="muted small">Nenhuma outra pessoa conhecida registrada.</p>'}
+      </section>
+      <section class="card">
+        <h2>O que Dante faz ou diz?</h2>
+        <p class="muted small">Você controla Dante. A IA interpreta a ação e a fala, estima a duração e narra as consequências sem decidir pensamentos, falas ou ações de Dante por você.</p>
+        ${w.activeAction ? `<p class="muted small">Dante está ocupado. Aguarde a atividade terminar para registrar outra ação.</p>` : `<form id="sceneEntryForm">
+          <p class="scene-combo-note">Escreva uma ação, uma fala ou as duas. A IA determinará quanto tempo a atividade exige.</p>
+          <div class="scene-combo">
+            <div class="field"><label for="sceneAction">Ação de Dante (*)</label><textarea id="sceneAction" maxlength="500" placeholder="Ex.: Verificar o carro e analisar as peças do motor."></textarea></div>
+            <div class="field"><label for="sceneSpeech">O que Dante diz (-)</label><textarea id="sceneSpeech" maxlength="500" placeholder="Ex.: Vou começar verificando o estado do motor."></textarea></div>
+          </div>
+          <button class="btn" type="submit"${sceneRequestPending ? ' disabled' : ''}>${sceneRequestPending ? 'Analisando a ação…' : 'Executar ação'}</button>
+        </form>`}
+      </section>
+      <section class="card">
+        <h2>Registro da cena</h2>
+        ${log || '<p class="muted small">A cena ainda não tem ações ou falas registradas.</p>'}
+      </section>
+      <section class="card">
+        <h2>Passagem do tempo</h2>
         <div class="grid">
-          <button class="btn ghost" data-act="adv" data-m="15">Esperar 15 min</button>
-          <button class="btn ghost" data-act="adv" data-m="30">Esperar 30 min</button>
-          <button class="btn ghost" data-act="adv" data-m="60">Esperar 1 hora</button>
-          <button class="btn ghost" data-act="adv" data-m="180">Esperar 3 horas</button>
-          <button class="btn ghost" data-act="adv" data-m="until6">Esperar até as 06:00</button>
-          <button class="btn ghost" data-act="adv" data-m="1440">Esperar 24 horas</button>
-          <div class="crow"><input id="cN" type="number" inputmode="numeric" min="1" value="1" aria-label="Quantidade"><select id="cU" aria-label="Unidade"><option value="m">min</option><option value="h">horas</option><option value="d">dias</option></select><button class="btn ghost" data-act="advc">Avançar</button></div>
+          <button class="btn ghost" data-act="adv" data-m="15"${w.activeAction ? ' disabled' : ''}>15 minutos</button>
+          <button class="btn ghost" data-act="adv" data-m="60"${w.activeAction ? ' disabled' : ''}>1 hora</button>
+          <button class="btn ghost" data-act="adv" data-m="180"${w.activeAction ? ' disabled' : ''}>3 horas</button>
+          <button class="btn ghost" data-act="adv" data-m="until6"${w.activeAction ? ' disabled' : ''}>Até 06:00</button>
         </div>
-      </section>
-      <section class="card">
-        <h2>Atributos</h2>
-        ${attrs}
-        <p class="muted small" style="margin:12px 0 0">Os atributos ainda não influenciam nenhuma ação. Os sistemas que vão usá-los chegam nas próximas versões.</p>
-      </section>
-      <section class="card dim">
-        <h2>Ainda não disponível</h2>
-        <ul class="list">${PLANNED.map(x => `<li>${x}</li>`).join('')}</ul>
       </section>`;
     }
   },
   pessoas: {
     label: 'Pessoas',
     render() {
-      return G.npcs.map(q => {
+      return `<section class="card"><h2>Pessoas conhecidas</h2><p class="muted small">As pessoas têm suas próprias vidas e podem estar em outros lugares. A posição exibida é a última conhecida nesta etapa do mundo.</p>
+      ${G.npcs.map(q => {
         const debts = G.debts.filter(d => d.npc === q.id).map(d => `<div class="muted small">${d.dir === 'owe' ? 'Você deve' : 'Deve a você'} ${fmtUSD(d.amt)} · até ${fmtShort(d.due)}</div>`).join('');
-        const c = chat[q.id];
-        return `<section class="card"><div class="who" style="font-size:22px">${esc(q.name)}</div><div class="muted small">${esc(q.occ)} · ${bondWord(q.bond)}</div>${debts}
-          ${c ? `<p class="bio">Você: “${esc(c[0])}”<br>${esc(q.name)}: ${esc(c[1])}</p>` : ''}
-          <div class="crow" style="margin-top:12px"><input id="tk-${q.id}" maxlength="140" autocomplete="off" placeholder="Escreva para ${esc(q.name)}…" aria-label="Mensagem para ${esc(q.name)}"><button class="btn ghost" data-act="talk" data-id="${q.id}">Falar</button></div></section>`;
-      }).join('');
+        const loc = WORLD_PLACES[q.locationId] || WORLD_PLACES.off_scene;
+        return `<div class="world-person world-person-card"><div class="world-avatar">${esc(q.name.slice(0,1))}</div><div class="world-person-main"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small><small>${esc(loc.name)} · ${bondWord(q.bond)}</small>${q.role ? `<small>${esc(q.role)}</small>` : ''}${debts}</div></div>`;
+      }).join('')}</section>`;
     }
   },
   financas: {
@@ -637,6 +1082,9 @@ const VIEWS = {
         <h2>Salvamento</h2>
         <p>${storageOk ? 'O progresso é salvo automaticamente neste navegador após cada ação.' : 'O armazenamento do navegador está bloqueado. O progresso não está sendo salvo.'}</p>
         <p class="muted small">Limpar os dados do site no navegador apaga o jogo salvo.</p>
+        <h2>Inteligência artificial</h2><p>A interpretação de ações usa Gemini por uma função protegida do Netlify. A chave da API não fica no navegador.</p>
+        <h2>Relógio do mundo</h2>
+        <p>O tempo avança automaticamente: 10 segundos de jogo aberto equivalem a 1 minuto no mundo. O relógio pausa na tela inicial e quando o navegador fica em segundo plano. Não há avanço enquanto o jogo está fechado.</p>
       </section>
       <section class="card">
         <h2>Menu</h2>
@@ -645,14 +1093,55 @@ const VIEWS = {
           <button class="btn danger" data-act="wipe">Apagar este jogo</button>
         </div>
       </section>
-      <p class="muted small" style="text-align:center">DANTE — AFTER HOURS · versão 0.3</p>`;
+      <p class="muted small" style="text-align:center">DANTE — AFTER HOURS · versão 1.0</p>`;
     }
   }
 };
 function pips(n) { return Array.from({ length: MAX_ATTR }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join(''); }
 
 /* ---------- Interface ---------- */
+let realtimeTimer = null;
+let realtimeLastAt = null;
+let realtimeCarryMs = 0;
+function startRealtimeClock() {
+  if (realtimeTimer !== null) return;
+  realtimeLastAt = Date.now();
+  realtimeTimer = setInterval(() => {
+    if (!G || $('#game').hidden || document.hidden) {
+      realtimeLastAt = null;
+      return;
+    }
+    const now = Date.now();
+    if (realtimeLastAt === null) {
+      realtimeLastAt = now;
+      return;
+    }
+    const elapsed = now - realtimeLastAt;
+    realtimeLastAt = now;
+    // Evita contabilizar o período em que o Safari suspendeu a página.
+    if (elapsed < 0 || elapsed > 15000) return;
+    realtimeCarryMs += elapsed;
+    const minutes = Math.floor(realtimeCarryMs / 10000);
+    if (minutes > 0) {
+      realtimeCarryMs %= 10000;
+      advanceTime(minutes);
+    }
+  }, 1000);
+}
+function stopRealtimeClock() {
+  if (realtimeTimer !== null) clearInterval(realtimeTimer);
+  realtimeTimer = null;
+  realtimeLastAt = null;
+}
+document.addEventListener('visibilitychange', () => {
+  // Ao voltar ao Safari, começa uma nova contagem; não recupera tempo offline.
+  realtimeLastAt = document.hidden ? null : Date.now();
+});
 function show(id) {
+  if (id === 'game') startRealtimeClock();
+  else stopRealtimeClock();
+  $('#phoneLauncher').hidden = id !== 'game';
+  if (id !== 'game') closePhone();
   ['title', 'create', 'game'].forEach(s => { $('#' + s).hidden = s !== id; });
   window.scrollTo(0, 0);
 }
@@ -664,12 +1153,15 @@ function renderTitle() {
   show('title');
 }
 function renderGame() {
+  $('#phoneLauncher').hidden = false;
+  updatePhoneClock();
   $('#hClock').textContent = fmtTime(G.time);
   $('#hPeriod').textContent = period(G.time);
   $('#hDay').textContent = fmtShort(G.time);
   $('#nav').innerHTML = Object.keys(VIEWS).map(k =>
     `<button data-act="nav" data-v="${k}"${k === view ? ' aria-current="page"' : ''}>${VIEWS[k].label}</button>`).join('');
-  $('#view').innerHTML = eventsHTML() + VIEWS[view].render();
+  $('#view').innerHTML = busyBannerHTML() + eventsHTML() + VIEWS[view].render();
+  $('#phoneLauncher').hidden = !!(G.world && G.world.activeAction);
 }
 function enterGame() {
   view = 'painel';
@@ -682,7 +1174,7 @@ function enterGame() {
 function startCreate() {
   draft = { attrs: {} };
   ATTRS.forEach(a => { draft.attrs[a.id] = 1; });
-  $('#inName').value = ''; $('#inAge').value = 25; $('#inBio').value = '';
+  $('#inName').value = 'Dante'; $('#inAge').value = 21; $('#inBio').value = 'Mecânico e motorista de aplicativo temporário. Reservado, observador e independente.';
   $('#createErr').textContent = '';
   $('#attrRows').innerHTML = ATTRS.map(a => `
     <div class="attr" data-id="${a.id}">
@@ -720,11 +1212,263 @@ function finishCreate() {
   enterGame();
 }
 
+
+/* ---------- Smartphone interno ---------- */
+let phonePage = 'lock';
+function phoneDate() {
+  const d = asDate(G.time);
+  return cap(DIAS[d.getUTCDay()]) + ', ' + d.getUTCDate() + ' de ' + MESES[d.getUTCMonth()];
+}
+function updatePhoneClock() {
+  if (!G) return;
+  $('#phoneStatusTime').textContent = fmtTime(G.time);
+  $('#phoneLockTime').textContent = fmtTime(G.time);
+  $('#phoneLockDate').textContent = phoneDate();
+  $('#phoneHomeDate').textContent = phoneDate();
+}
+function openPhone() {
+  if (!G) return;
+  phonePage = 'lock';
+  $('#phoneOverlay').hidden = false;
+  $('#phoneLock').hidden = false;
+  $('#phoneHome').hidden = true;
+  $('#phoneDock').hidden = true;
+  $('#phoneAppScreen').hidden = true;
+  updatePhoneClock();
+}
+function closePhone() {
+  $('#phoneOverlay').hidden = true;
+}
+function phoneHome() {
+  phonePage = 'home';
+  $('#phoneLock').hidden = true;
+  $('#phoneHome').hidden = false;
+  $('#phoneDock').hidden = false;
+  $('#phoneAppScreen').hidden = true;
+  updatePhoneClock();
+}
+function openPhoneApp(name) {
+  phonePage = name;
+  $('#phoneLock').hidden = true;
+  $('#phoneHome').hidden = true;
+  $('#phoneDock').hidden = true;
+  const app = $('#phoneAppScreen');
+  app.hidden = false;
+  if (name === 'bank') {
+    renderBankApp('home');
+  } else if (name === 'whatsapp') {
+    renderWhatsApp('list');
+  } else if (name === 'settings') {
+    app.className = 'phone-app-screen';
+    app.innerHTML = `<div class="phone-appbar"><button type="button" data-phone="home">‹ Início</button><h3>Ajustes</h3><span></span></div><div class="phone-bank-card"><div class="eyebrow">SISTEMA</div><div class="phone-bank-row"><span>Dispositivo</span><b>iPhone 15</b></div><div class="phone-bank-row"><span>Data e hora</span><b>Horário do jogo</b></div><div class="phone-bank-row"><span>Conexão</span><b>Disponível</b></div></div><div class="phone-empty">Mais configurações serão adicionadas futuramente.</div>`;
+  } else {
+    app.className = 'phone-app-screen';
+    app.innerHTML = `<div class="phone-appbar"><button type="button" data-phone="home">‹ Início</button><h3>Notas</h3><span></span></div><div class="phone-placeholder"><div class="big">▤</div><h4>Notas</h4><p>Este aplicativo ainda não está disponível.</p></div>`;
+  }
+}
+
+
+/* ---------- WhatsApp: conversas persistentes com os NPCs ---------- */
+let waPage = 'list';
+let waActiveNpc = null;
+function waMessagesFor(id) { return (G.messages || []).filter(m => m.npc === id).sort((a,b) => a.t - b.t || a.id - b.id); }
+function waLastMessage(id) { const a = waMessagesFor(id); return a.length ? a[a.length - 1] : null; }
+function waClock(t) { return fmtTime(t); }
+function waAddMessage(id, from, text) {
+  if (!Array.isArray(G.messages)) G.messages = [];
+  if (!Number.isSafeInteger(G.nextMessageId) || G.nextMessageId < 1) G.nextMessageId = 1;
+  G.messages.push({ id: G.nextMessageId++, npc: id, from, text: String(text).slice(0,500), t: G.time });
+  if (G.messages.length > 1000) G.messages.splice(0, G.messages.length - 1000);
+}
+function renderWhatsApp(page, npcId) {
+  waPage = page || 'list';
+  if (npcId) waActiveNpc = npcId;
+  const app = $('#phoneAppScreen');
+  app.className = 'phone-app-screen wa-app';
+  if (waPage === 'chat') {
+    const q = npcOf(waActiveNpc);
+    if (!q) { renderWhatsApp('list'); return; }
+    const messages = waMessagesFor(q.id);
+    const body = messages.length ? messages.map(m => `<div class="wa-bubble ${m.from === 'player' ? 'player' : 'npc'}">${esc(m.text)}<time>${waClock(m.t)}</time></div>`).join('') : '<div class="wa-date-pill">Esta é uma conversa nova</div><div class="wa-empty">Envie uma mensagem para começar a conversar.</div>';
+    app.innerHTML = `<div class="wa-shell"><header class="wa-chat-head"><button type="button" data-wa="list" aria-label="Voltar às conversas">‹</button><span class="wa-avatar">${esc(q.name.slice(0,1).toUpperCase())}</span><div class="wa-chat-name"><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></div></header><div class="wa-ai-note">As respostas dos personagens serão geradas pela IA quando ela for integrada. Nenhuma resposta pronta é simulada.</div><div class="wa-messages" id="waMessages">${body}</div><form class="wa-compose" id="waCompose"><input id="waInput" type="text" maxlength="500" autocomplete="off" placeholder="Mensagem" aria-label="Mensagem"><button class="wa-send" type="submit" aria-label="Enviar mensagem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button></form></div>`;
+    const scroller = $('#waMessages'); if (scroller) scroller.scrollTop = scroller.scrollHeight;
+    return;
+  }
+  const contacts = G.npcs.map(q => {
+    const last = waLastMessage(q.id);
+    const preview = last ? (last.from === 'player' ? 'Você: ' : '') + last.text : q.occ + ' · iniciar conversa';
+    return { q, last, preview };
+  }).sort((a,b) => (b.last ? b.last.t : -1) - (a.last ? a.last.t : -1));
+  app.innerHTML = `<div class="wa-shell"><header class="wa-top"><div class="wa-topline"><button class="wa-home-return" type="button" data-phone="home">‹ Celular</button><strong>WhatsApp</strong><div class="wa-top-actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span>⋮</span></div></div><div class="wa-tabs"><span class="active">CONVERSAS</span><span>STATUS</span><span>CHAMADAS</span></div></header><div class="wa-list">${contacts.map(({q,last,preview}) => `<button class="wa-contact" type="button" data-wa="chat" data-id="${esc(q.id)}"><span class="wa-avatar">${esc(q.name.slice(0,1).toUpperCase())}</span><span class="wa-contact-main"><span class="wa-contact-line"><b>${esc(q.name)}</b><small>${last ? waClock(last.t) : ''}</small></span><span class="wa-preview">${esc(preview)}</span></span></button>`).join('')}</div></div>`;
+}
+function waSendMessage() {
+  const input = $('#waInput');
+  const text = input ? input.value.trim() : '';
+  const q = npcOf(waActiveNpc);
+  if (!q || !text) return;
+  waAddMessage(q.id, 'player', text);
+  remember('Você enviou uma mensagem para ' + q.name + '.');
+  commit();
+  renderWhatsApp('chat', q.id);
+}
+
+/* ---------- Banco digital ---------- */
+let bankPage = 'home';
+let bankFilter = 'all';
+let bankHideBalance = false;
+let bankPixDraft = null;
+function bankIcon(name) {
+  const paths = {
+    pix: '<path d="M7.2 7.2 10 4.4a2.8 2.8 0 0 1 4 0l2.8 2.8-2.3 2.3a3.5 3.5 0 0 1-5 0L7.2 7.2Z"/><path d="m7.2 16.8 2.3-2.3a3.5 3.5 0 0 1 5 0l2.3 2.3-2.8 2.8a2.8 2.8 0 0 1-4 0l-2.8-2.8Z"/><path d="m4.4 10 2.8-2.8 2.3 2.3a3.5 3.5 0 0 1 0 5l-2.3 2.3L4.4 14a2.8 2.8 0 0 1 0-4Z"/><path d="m19.6 10-2.8-2.8-2.3 2.3a3.5 3.5 0 0 0 0 5l2.3 2.3 2.8-2.8a2.8 2.8 0 0 0 0-4Z"/>',
+    deposit: '<path d="M12 16V4m-4 4 4-4 4 4"/><path d="M5 14v5h14v-5"/>',
+    withdraw: '<path d="M12 4v12m-4-4 4 4 4-4"/><path d="M5 14v5h14v-5"/>',
+    history: '<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5m4-1v5l3 2"/>',
+    eye: '<path d="M2.5 12s3.3-6 9.5-6 9.5 6 9.5 6-3.3 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/>',
+    eyeoff: '<path d="m3 3 18 18M10.6 6.2A10 10 0 0 1 12 6c6.2 0 9.5 6 9.5 6a14 14 0 0 1-3 3.6M6.2 6.3C3.8 8 2.5 12 2.5 12s3.3 6 9.5 6c1.5 0 2.8-.4 4-1"/>',
+    check: '<path d="m5 12 4 4L19 6"/>',
+    arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
+    bank: '<path d="m3 9 9-6 9 6H3Z"/><path d="M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18"/>'
+  };
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.arrow}</svg>`;
+}
+function bankMoney(c) { return bankHideBalance ? '••••••' : fmtUSD(c); }
+function bankBackButton(label='Voltar', target='home') { return `<button class="nu-back" type="button" data-bank-page="${target}">‹ ${label}</button>`; }
+function bankTxRows(rows) {
+  if (!rows.length) return '<div class="nu-empty">Nenhuma movimentação por enquanto.</div>';
+  return rows.map(x => {
+    const sign = x.type === 'income' ? '+' : x.type === 'expense' ? '−' : '';
+    const cls = x.type === 'income' ? 'in' : '';
+    const icon = x.type === 'income' ? 'arrow' : x.type === 'expense' ? 'arrow' : 'bank';
+    return `<div class="nu-transaction"><span class="nu-tx-icon">${bankIcon(icon)}</span><span class="nu-tx-info"><b>${esc(x.desc)}</b><small>${esc(x.cat)} · ${fmtShort(x.t)} às ${fmtTime(x.t)}</small></span><span class="nu-tx-value ${cls}">${sign}${fmtUSD(x.amt)}</span></div>`;
+  }).join('');
+}
+function renderBankApp(page) {
+  bankPage = page || 'home';
+  const app = $('#phoneAppScreen');
+  app.className = 'phone-app-screen nu-bank';
+  const f = getFinancialSummary();
+  if (bankPage === 'home') {
+    const recent = getTransactionHistory('all').slice(0,4);
+    const firstName = G.player.name.split(/\s+/)[0];
+    app.innerHTML = `<div class="nu-bank">
+      <header class="nu-header"><div class="nu-topline"><div class="nu-brand"><span class="nu-brand-mark">${bankIcon('bank')}</span><span>nu.</span></div><span class="nu-avatar">${esc(firstName.slice(0,1).toUpperCase())}</span></div><div class="nu-greeting">Olá, ${esc(firstName)}</div><div class="nu-headline">Como estão suas finanças?</div></header>
+      <section class="nu-balance-card"><div class="nu-label">Saldo em conta</div><div class="nu-balance-line"><strong class="nu-balance">${bankMoney(f.bank)}</strong><button class="nu-eye" type="button" data-bank-action="toggle-balance" aria-label="Mostrar ou ocultar saldo">${bankIcon(bankHideBalance?'eyeoff':'eye')}</button></div></section>
+      <div class="nu-shortcuts">
+        <button class="nu-shortcut" type="button" data-bank-page="pix"><span class="nu-shortcut-icon">${bankIcon('pix')}</span><span>Fazer Pix</span></button>
+        <button class="nu-shortcut" type="button" data-bank-page="deposit"><span class="nu-shortcut-icon">${bankIcon('deposit')}</span><span>Depositar</span></button>
+        <button class="nu-shortcut" type="button" data-bank-page="withdraw"><span class="nu-shortcut-icon">${bankIcon('withdraw')}</span><span>Retirar</span></button>
+        <button class="nu-shortcut" type="button" data-bank-page="history"><span class="nu-shortcut-icon">${bankIcon('history')}</span><span>Extrato</span></button>
+      </div>
+      <section class="nu-section"><h4 class="nu-section-title">Minha conta</h4><div class="nu-white-card"><div class="nu-account-row"><span>Saldo em conta</span><b>${bankMoney(f.bank)}</b></div><div class="nu-account-row"><span>Dinheiro na carteira</span><b>${bankMoney(f.wallet)}</b></div><div class="nu-account-row"><span>Patrimônio total</span><b>${bankMoney(f.total)}</b></div></div></section>
+      <section class="nu-section"><div style="display:flex;justify-content:space-between;align-items:center"><h4 class="nu-section-title">Últimas movimentações</h4><button class="nu-link" type="button" data-bank-page="history">Ver extrato</button></div><div class="nu-white-card">${bankTxRows(recent)}</div></section>
+      <div class="nu-foot">DANTE BANK · CONTA DIGITAL DO UNIVERSO DANTE</div>
+    </div>`;
+  } else if (bankPage === 'pix') {
+    const opts = G.npcs.map(q => `<option value="${esc(q.id)}">${esc(q.name)} · ${esc(q.occ)}</option>`).join('');
+    app.innerHTML = `<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton()}<h2 class="nu-page-title">Fazer Pix</h2><p class="nu-page-sub">Transfira dinheiro da sua conta para alguém do seu círculo.</p><div class="nu-white-card" style="margin-bottom:16px"><div class="nu-label">Saldo disponível</div><div style="font-size:21px;font-weight:800;margin-top:4px">${bankMoney(f.bank)}</div></div><div class="nu-field"><label for="nuPixTo">Quem vai receber?</label><select id="nuPixTo"><option value="">Selecione uma pessoa</option>${opts}</select></div><div class="nu-field"><label for="nuPixAmount">Valor da transferência</label><input id="nuPixAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div><div class="nu-field"><label for="nuPixDesc">Descrição (opcional)</label><input id="nuPixDesc" type="text" maxlength="48" placeholder="Ex.: acerto, ajuda, pagamento"></div><div class="nu-note">O Pix será descontado do saldo bancário e creditado ao dinheiro disponível do destinatário. Confira os dados antes de confirmar.</div><button class="nu-primary" type="button" data-bank-action="pix-submit">Continuar</button></div></div>`;
+  } else if (bankPage === 'pix-review') {
+    const draft = bankPixDraft;
+    if (!draft) { renderBankApp('pix'); return; }
+    const recipient = npcOf(draft.to);
+    app.innerHTML = `<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton('Editar Pix','pix')}<h2 class="nu-page-title">Confira os dados</h2><p class="nu-page-sub">Revise a transferência antes de confirmar.</p><div class="nu-receipt"><div class="nu-label">Valor do Pix</div><div class="nu-receipt-amount">${fmtUSD(draft.amount)}</div><div class="nu-receipt-detail"><span>Para</span><b>${esc(recipient ? recipient.name : 'Destinatário')}</b></div><div class="nu-receipt-detail"><span>Instituição</span><b>DANTE BANK</b></div><div class="nu-receipt-detail"><span>Descrição</span><b>${esc(draft.description || 'Pix enviado')}</b></div><div class="nu-receipt-detail"><span>Origem</span><b>Saldo da conta</b></div></div><div class="nu-note">Ao confirmar, o valor será descontado da sua conta e adicionado ao dinheiro do destinatário. Essa operação não pode ser desfeita.</div><button class="nu-primary" type="button" data-bank-action="pix-confirm">Confirmar Pix</button><button class="nu-secondary" type="button" data-bank-page="pix">Cancelar</button></div></div>`;
+  } else if (bankPage === 'deposit' || bankPage === 'withdraw') {
+    const dep = bankPage === 'deposit';
+    const from = dep ? f.wallet : f.bank;
+    app.innerHTML = `<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton()}<h2 class="nu-page-title">${dep?'Depositar dinheiro':'Retirar dinheiro'}</h2><p class="nu-page-sub">${dep?'Transfira dinheiro da carteira para sua conta.':'Transfira dinheiro da conta para sua carteira.'}</p><div class="nu-white-card" style="margin-bottom:16px"><div class="nu-label">${dep?'Disponível na carteira':'Disponível na conta'}</div><div style="font-size:21px;font-weight:800;margin-top:4px">${bankMoney(from)}</div></div><div class="nu-field"><label for="nuMoveAmount">Valor</label><input id="nuMoveAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div><button class="nu-primary" type="button" data-bank-action="${dep?'deposit-submit':'withdraw-submit'}">${dep?'Depositar':'Retirar'}</button></div></div>`;
+  } else if (bankPage === 'history') {
+    const all = getTransactionHistory(bankFilter).slice(0,100);
+    const filters = [['all','Tudo'],['income','Entradas'],['expense','Saídas'],['transfer','Transferências']];
+    app.innerHTML = `<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton()}<h2 class="nu-page-title">Extrato</h2><p class="nu-page-sub">Todas as movimentações da sua conta e carteira.</p><div class="nu-filter">${filters.map(([k,l])=>`<button type="button" data-bank-filter="${k}" aria-pressed="${k===bankFilter}">${l}</button>`).join('')}</div><div class="nu-white-card">${bankTxRows(all)}</div>${getTransactionHistory(bankFilter).length>100?'<p class="nu-foot">Exibindo as 100 movimentações mais recentes.</p>':''}</div></div>`;
+  } else if (bankPage === 'receipt') {
+    const r = G.lastPixReceipt;
+    if (!r) { app.innerHTML = `<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton()}<div class="nu-empty">Nenhum comprovante disponível.</div></div></div>`; return; }
+    app.innerHTML = `<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton()}<div class="nu-receipt"><div class="nu-receipt-check">${bankIcon('check')}</div><div style="font-size:15px;font-weight:800">Pix realizado</div><div class="nu-label">Transferência concluída</div><div class="nu-receipt-amount">${fmtUSD(r.amount)}</div><div class="nu-receipt-detail"><span>Para</span><b>${esc(r.recipientName)}</b></div><div class="nu-receipt-detail"><span>Descrição</span><b>${esc(r.description||'Pix enviado')}</b></div><div class="nu-receipt-detail"><span>Data</span><b>${fmtShort(r.t)} · ${fmtTime(r.t)}</b></div><div class="nu-receipt-detail"><span>Conta de origem</span><b>DANTE BANK</b></div><div class="nu-receipt-detail"><span>Identificador</span><b>${String(r.txId).padStart(6,'0')}</b></div></div><button class="nu-secondary" type="button" data-bank-page="home">Voltar ao início</button></div></div>`;
+  }
+}
+function bankDoPix() {
+  const to = $('#nuPixTo').value;
+  const raw = $('#nuPixAmount').value;
+  const desc = $('#nuPixDesc').value.trim().slice(0,48);
+  const q = npcOf(to);
+  const amount = parseMoney(raw);
+  if (!q) return toast('Selecione quem vai receber o Pix.', true);
+  if (!validAmt(amount)) return toast('Informe um valor válido.', true);
+  if (G.bank < amount) return toast('Saldo bancário insuficiente.', true);
+  if (q.cash + amount > MAX_CENTS) return toast('O destinatário não pode receber esse valor.', true);
+  bankPixDraft = { to: q.id, amount, description: desc };
+  renderBankApp('pix-review');
+}
+function bankConfirmPix() {
+  const draft = bankPixDraft;
+  if (!draft) return toast('Não há Pix para confirmar.', true);
+  const q = npcOf(draft.to), amount = draft.amount;
+  if (!q) return toast('Destinatário não encontrado.', true);
+  if (!validAmt(amount) || G.bank < amount) return toast('Saldo bancário insuficiente ou valor inválido.', true);
+  if (q.cash + amount > MAX_CENTS) return toast('O destinatário não pode receber esse valor.', true);
+  const result = spendMoney(amount, 'bank', 'Pix para ' + q.name, 'Pix enviado');
+  if (!result.ok) return toast(result.msg, true);
+  q.cash += amount;
+  remember('Você enviou ' + fmtUSD(amount) + ' por Pix para ' + q.name + (draft.description ? ' (' + draft.description + ')' : '') + '.');
+  const tx = G.tx[G.tx.length - 1];
+  G.lastPixReceipt = { txId: tx ? tx.id : G.nextTx - 1, t: G.time, recipient: q.id, recipientName: q.name, amount, description: draft.description || 'Pix enviado' };
+  bankPixDraft = null;
+  commit();
+  renderBankApp('receipt');
+  toast('Pix enviado com sucesso.');
+}
+function bankMoveMoney(kind) {
+  const amount = parseMoney($('#nuMoveAmount').value);
+  if (!validAmt(amount)) return toast('Informe um valor válido.', true);
+  const result = kind === 'deposit'
+    ? transferMoney(amount, 'wallet', 'bank', 'Depósito')
+    : transferMoney(amount, 'bank', 'wallet', 'Retirada');
+  if (!result.ok) return toast(result.msg, true);
+  renderBankApp('home');
+  toast(kind === 'deposit' ? 'Dinheiro depositado.' : 'Dinheiro retirado.');
+}
+
+
 /* Eventos (delegação) */
+
+document.addEventListener('click', ev => {
+  if (G && G.world && G.world.activeAction && ev.target.closest('#phoneLauncher,[data-app],[data-wa],[data-bank-page],[data-bank-filter],[data-bank-action]')) { toast('Dante está ocupado até concluir a atividade.', true); return; }
+  if (ev.target.closest('#phoneLauncher')) { openPhone(); return; }
+  const pbtn = ev.target.closest('[data-phone]');
+  if (pbtn) {
+    const action = pbtn.dataset.phone;
+    if (action === 'close') closePhone();
+    else if (action === 'unlock' || action === 'home') phoneHome();
+    return;
+  }
+  const app = ev.target.closest('[data-app]');
+  if (app) { openPhoneApp(app.dataset.app); return; }
+  const waButton = ev.target.closest('[data-wa]');
+  if (waButton) {
+    if (waButton.dataset.wa === 'list') renderWhatsApp('list');
+    else if (waButton.dataset.wa === 'chat') renderWhatsApp('chat', waButton.dataset.id);
+    return;
+  }
+  const bankPageButton = ev.target.closest('[data-bank-page]');
+  if (bankPageButton) { renderBankApp(bankPageButton.dataset.bankPage); return; }
+  const bankFilterButton = ev.target.closest('[data-bank-filter]');
+  if (bankFilterButton) { bankFilter = bankFilterButton.dataset.bankFilter; renderBankApp('history'); return; }
+  const bankActionButton = ev.target.closest('[data-bank-action]');
+  if (bankActionButton) {
+    const action = bankActionButton.dataset.bankAction;
+    if (action === 'toggle-balance') { bankHideBalance = !bankHideBalance; renderBankApp('home'); }
+    else if (action === 'pix-submit') bankDoPix();
+    else if (action === 'pix-confirm') bankConfirmPix();
+    else if (action === 'deposit-submit') bankMoveMoney('deposit');
+    else if (action === 'withdraw-submit') bankMoveMoney('withdraw');
+    return;
+  }
+});
+
 document.addEventListener('click', ev => {
   const el = ev.target.closest('[data-act]');
   if (!el) return;
   const act = el.dataset.act;
+  if (G && G.world && G.world.activeAction && !['nav','menu'].includes(act)) { toast('Dante está ocupado até concluir a atividade.', true); return; }
   if (act === 'continue') { const s = loadSave(); if (s) { G = s; enterGame(); } else renderTitle(); }
   else if (act === 'new') {
     if (loadSave()) askConfirm('Já existe um jogo salvo. Ele só será substituído quando você terminar de criar o novo personagem. Continuar?', startCreate);
@@ -757,7 +1501,22 @@ document.addEventListener('click', ev => {
   }
 });
 
+document.addEventListener('submit', ev => {
+  if (ev.target && ev.target.id === 'waCompose') {
+    ev.preventDefault();
+    if (G && G.world && G.world.activeAction) { toast('Dante está ocupado até concluir a atividade.', true); return; }
+    waSendMessage();
+  } else if (ev.target && ev.target.id === 'sceneEntryForm') {
+    ev.preventDefault();
+    const action = $('#sceneAction').value;
+    const speech = $('#sceneSpeech').value;
+    if (!action.trim() && !speech.trim()) { toast('Escreva uma ação, uma fala ou as duas.', true); return; }
+    submitSceneToAI(action, speech);
+  }
+});
+
 document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && !$('#phoneOverlay').hidden) closePhone();
   if (ev.key === 'Enter' && ev.target.id && ev.target.id.startsWith('tk-')) talk(ev.target.id.slice(3));
 });
 
