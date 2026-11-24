@@ -21,6 +21,33 @@ const responseSchema = {
   required: ['durationMinutes', 'activityTitle', 'narration', 'npcReactions']
 };
 
+const whatsappResponseSchema = {
+  type: 'OBJECT',
+  properties: {
+    reply: { type: 'STRING' },
+    shouldMessage: { type: 'BOOLEAN' },
+    relationshipChanges: {
+      type: 'OBJECT',
+      properties: {
+        friendship: { type: 'INTEGER' }, trust: { type: 'INTEGER' },
+        intimacy: { type: 'INTEGER' }, romance: { type: 'INTEGER' }
+      },
+      required: ['friendship', 'trust', 'intimacy', 'romance']
+    },
+    memory: { type: 'STRING' }
+  },
+  required: ['reply', 'shouldMessage', 'relationshipChanges', 'memory']
+};
+
+const whatsappSystemInstruction = `Você interpreta uma pessoa realista dentro do simulador DANTE — AFTER HOURS e escreve mensagens de WhatsApp como o NPC indicado.
+Fale em português brasileiro natural, com voz, vocabulário, ritmo e personalidade próprios. Não escreva como assistente, narrador ou relatório. Não use ações entre asteriscos. Mensagens devem parecer mensagens reais, com tamanho adequado ao contexto.
+Mantenha continuidade com o histórico, o horário, a cena e as memórias do personagem. Não invente acontecimentos que não estejam no contexto. Não controle Dante: nunca escreva respostas, decisões ou ações por ele.
+As dimensões internas de amizade, confiança, intimidade e romance são independentes. Use-as apenas para orientar familiaridade, abertura e limites; jamais mencione números, barras, níveis ou pontuações. Não transforme amizade em romance automaticamente. Respeite personalidade, limites e reciprocidade.
+Quando o jogador enviar mensagem, responda diretamente ao conteúdo, salvo se houver motivo coerente para não responder. A resposta deve ser uma mensagem do NPC, não uma narração.
+Quando autonomous=true, decida se este NPC teria motivo genuíno para procurar Dante agora. Se não houver motivo plausível, use shouldMessage=false e reply vazio. Se houver, escreva uma mensagem espontânea coerente com a relação e com o que está acontecendo. Não envie mensagens apenas para preencher atividade.
+relationshipChanges são deltas pequenos entre -2 e 2, normalmente zero. Só altere dimensões quando a conversa justificar. memory deve ser uma lembrança curta e objetiva que ajude a manter continuidade; se não houver algo relevante, use string vazia.
+Retorne somente JSON válido: {"reply":"...","shouldMessage":true,"relationshipChanges":{"friendship":0,"trust":0,"intimacy":0,"romance":0},"memory":""}.`;
+
 const systemInstruction = `Você é o narrador, mestre de jogo e árbitro de um simulador de vida realista chamado DANTE — AFTER HOURS.
 Sua função é conduzir uma cena viva e coerente a partir do que o jogador declarou, como um bom narrador de RPG narrativo: atento ao contexto, às pessoas, ao ambiente e às consequências. A resposta deve soar natural e humana, não como um relatório automático.
 
@@ -68,6 +95,11 @@ function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function clampDelta(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.max(-2, Math.min(2, Math.round(n))) : 0;
+}
+
 export default async (request) => {
   if (request.method !== 'POST') return jsonResponse(405, { error: 'Método não permitido.' });
 
@@ -112,11 +144,13 @@ export default async (request) => {
     return jsonResponse(400, { error: 'Não foi possível ler os dados enviados.' });
   }
 
+  const mode = input.mode === 'whatsapp' ? 'whatsapp' : 'scene';
   const message = cleanText(input.message, 1000);
   const legacyAction = cleanText(input.action);
   const legacySpeech = cleanText(input.speech);
   const unifiedMessage = message || [legacyAction, legacySpeech].filter(Boolean).join('\\n');
-  if (!unifiedMessage) return jsonResponse(400, { error: 'Escreva o que Dante faz ou diz.' });
+  if (mode === 'scene' && !unifiedMessage) return jsonResponse(400, { error: 'Escreva o que Dante faz ou diz.' });
+  if (mode === 'whatsapp' && !input.npc) return jsonResponse(400, { error: 'Contato não informado para a conversa.' });
 
   const context = {
     message: unifiedMessage,
@@ -149,8 +183,38 @@ export default async (request) => {
     })) : []
   };
 
+  const activeSystemInstruction = mode === 'whatsapp' ? whatsappSystemInstruction : systemInstruction;
+  const activeResponseSchema = mode === 'whatsapp' ? whatsappResponseSchema : responseSchema;
+  const whatsappContext = mode === 'whatsapp' ? {
+    gameTime: cleanText(input.gameTime, 100),
+    location: cleanText(input.location, 160),
+    player: context.player,
+    npc: input.npc && typeof input.npc === 'object' ? {
+      id: cleanText(input.npc.id, 40), name: cleanText(input.npc.name, 80),
+      occupation: cleanText(input.npc.occupation, 100), role: cleanText(input.npc.role, 100),
+      personality: cleanText(input.npc.personality, 500),
+      relationship: input.npc.relationship && typeof input.npc.relationship === 'object' ? {
+        friendship: Number(input.npc.relationship.friendship) || 0,
+        trust: Number(input.npc.relationship.trust) || 0,
+        intimacy: Number(input.npc.relationship.intimacy) || 0,
+        romance: Number(input.npc.relationship.romance) || 0,
+        memories: Array.isArray(input.npc.relationship.memories) ? input.npc.relationship.memories.slice(-8).map(x => cleanText(x,180)) : []
+      } : {}
+    } : null,
+    message: unifiedMessage,
+    autonomous: input.autonomous === true,
+    conversation: Array.isArray(input.conversation) ? input.conversation.slice(-16).map(m => ({
+      speaker: cleanText(m.speaker,80), text: cleanText(m.text,500), time: cleanText(m.time,80)
+    })) : [],
+    recentScene: Array.isArray(input.recentScene) ? input.recentScene.slice(-8).map(e => ({
+      kind: cleanText(e.kind,20), text: cleanText(e.text,300), time: cleanText(e.time,20)
+    })) : []
+  } : null;
+
   try {
-    const userPrompt = `Contexto atual do jogo (JSON):\n${JSON.stringify(context)}\n\nRetorne somente JSON válido, sem Markdown, seguindo exatamente este formato: {"durationMinutes":1,"activityTitle":"...","narration":"...","npcReactions":[{"npcId":"...","text":"..."}]}.`;
+    const userPrompt = mode === 'whatsapp'
+      ? `Contexto da conversa no jogo (JSON):\\n${JSON.stringify(whatsappContext)}\\n\\nRetorne somente JSON válido no formato exigido.`
+      : `Contexto atual do jogo (JSON):\\n${JSON.stringify(context)}\\n\\nRetorne somente JSON válido, sem Markdown, seguindo exatamente este formato: {"durationMinutes":1,"activityTitle":"...","narration":"...","npcReactions":[{"npcId":"...","text":"..."}]}.`;
     let result = null;
     const providerErrors = [];
 
@@ -171,11 +235,11 @@ export default async (request) => {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
               body: JSON.stringify({
-                systemInstruction: { parts: [{ text: systemInstruction }] },
+                systemInstruction: { parts: [{ text: activeSystemInstruction }] },
                 contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
                 generationConfig: {
                   responseMimeType: 'application/json',
-                  responseSchema,
+                  responseSchema: activeResponseSchema,
                   maxOutputTokens: 1500,
                   thinkingConfig: { thinkingLevel: 'LOW' }
                 }
@@ -223,7 +287,7 @@ export default async (request) => {
           body: JSON.stringify({
             model: groqModel,
             messages: [
-              { role: 'system', content: `${systemInstruction}\n\nResponda exclusivamente com um objeto JSON válido, sem bloco Markdown, com as propriedades durationMinutes (inteiro), activityTitle (texto), narration (texto) e npcReactions (array de objetos npcId/text).` },
+              { role: 'system', content: `${activeSystemInstruction}\\n\\nResponda exclusivamente com um objeto JSON válido no formato solicitado.` },
               { role: 'user', content: userPrompt }
             ],
             temperature: 0.7,
@@ -253,6 +317,21 @@ export default async (request) => {
       const groqStatus = groqApiKey ? 'GROQ_API_KEY foi encontrada pela função.' : 'GROQ_API_KEY NÃO foi encontrada pela função; confira se está cadastrada no ambiente de produção com escopo Functions e se houve novo deploy.';
       return jsonResponse(503, {
         error: `A IA não conseguiu responder. ${groqStatus} ${details}`
+      });
+    }
+
+    if (mode === 'whatsapp') {
+      const changes = result.relationshipChanges && typeof result.relationshipChanges === 'object' ? result.relationshipChanges : {};
+      return jsonResponse(200, {
+        reply: cleanText(result.reply, 700),
+        shouldMessage: input.autonomous === true ? result.shouldMessage === true : true,
+        relationshipChanges: {
+          friendship: clampDelta(changes.friendship),
+          trust: clampDelta(changes.trust),
+          intimacy: clampDelta(changes.intimacy),
+          romance: clampDelta(changes.romance)
+        },
+        memory: cleanText(result.memory, 180)
       });
     }
 
