@@ -317,6 +317,21 @@ main{padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 100px)}
 @media(max-width:360px){.world-time{font-size:46px}.world-hero{padding:18px 16px}.world-vehicle{align-items:flex-start}}
 
 
+
+/* ---------- Conversas e entrada unificada ---------- */
+#sceneMessage{min-height:112px;line-height:1.55}
+.scene-conversation{display:flex;flex-direction:column;gap:10px}
+.scene-message{max-width:92%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#171719;overflow-wrap:anywhere;white-space:pre-wrap}
+.scene-message.player{align-self:flex-end;border-color:#806a3c;background:#292317}
+.scene-message.npc{align-self:flex-start;border-color:#3b3934;background:#191a1c}
+.scene-message.narration{align-self:stretch;max-width:100%;background:#101113;border-style:dashed;color:#c9c4b9}
+.scene-message .scene-author{display:block;margin-bottom:5px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-hi)}
+.scene-message time{display:block;margin-top:7px;font-size:10px;color:var(--muted);text-align:right}
+.scene-empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:13px}
+.nav{overflow-x:auto;justify-content:flex-start}
+.nav div{min-width:100%;width:max-content}
+.nav button{min-width:68px;padding:0 5px}
+
 /* ---------- Refinamento visual: edição After Hours ---------- */
 :root{--gold:#b99a53;--gold-hi:#ead6a0;--gold-lo:#6e592f;--graphite:#141416;--graphite2:#1b1b1e;--line:#343236}
 body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#09090a 100%);letter-spacing:.005em}
@@ -565,14 +580,14 @@ function completeActiveAction() {
   const a = G && G.world && G.world.activeAction;
   if (!a) return;
   const t = G.time;
-  const addLog = text => {
-    G.world.sceneLog.push({ id: G.world.nextSceneId++, kind: 'speech', text, t });
+  const addLog = (kind, text) => {
+    G.world.sceneLog.push({ id: G.world.nextSceneId++, kind, text, t });
     remember(text, t);
   };
-  if (a.narration) addLog('Resultado: ' + a.narration);
+  if (a.narration) addLog('narration', a.narration);
   (a.npcReactions || []).forEach(r => {
     const npc = G.npcs.find(q => q.id === r.npcId && q.locationId === G.world.locationId);
-    if (npc && r.text) addLog(npc.name + ': “' + r.text + '”');
+    if (npc && r.text) addLog('npc', r.text);
   });
   if (G.world.sceneLog.length > 300) G.world.sceneLog.splice(0, G.world.sceneLog.length - 300);
   G.world.activeAction = null;
@@ -702,7 +717,7 @@ function normalizeWorld(w, t) {
     w.vehicle.status = typeof w.vehicle.status === 'string' ? w.vehicle.status : base.vehicle.status;
     w.vehicle.returnAt = Number.isFinite(w.vehicle.returnAt) ? w.vehicle.returnAt : base.vehicle.returnAt;
   }
-  w.sceneLog = Array.isArray(w.sceneLog) ? w.sceneLog.filter(x => x && ['action','speech'].includes(x.kind) && typeof x.text === 'string' && Number.isFinite(x.t)).slice(-300) : [];
+  w.sceneLog = Array.isArray(w.sceneLog) ? w.sceneLog.filter(x => x && ['action','speech','player','narration','npc'].includes(x.kind) && typeof x.text === 'string' && Number.isFinite(x.t)).slice(-300) : [];
   w.nextSceneId = Math.max(Number.isSafeInteger(w.nextSceneId) ? w.nextSceneId : 1, w.sceneLog.reduce((m,x) => Math.max(m, Number(x.id)||0), 0) + 1);
   w.createdAt = Number.isFinite(w.createdAt) ? w.createdAt : base.createdAt;
   if (w.activeAction && typeof w.activeAction === 'object' && Number.isFinite(w.activeAction.endTime) && w.activeAction.endTime > (Number.isFinite(t) ? t : START)) {
@@ -717,20 +732,13 @@ function normalizeWorld(w, t) {
   } else w.activeAction = null;
   return w;
 }
-function addSceneEntries(actionRaw, speechRaw) {
+function addSceneEntries(messageRaw) {
   if (!G || !G.world) return false;
-  const action = String(actionRaw || '').trim().replace(/^\\*\\s*/, '').trim().slice(0, 500);
-  const speech = String(speechRaw || '').trim().replace(/^-\\s*/, '').trim().slice(0, 500);
-  if (!action && !speech) return false;
+  const message = String(messageRaw || '').trim().slice(0, 1000);
+  if (!message) return false;
   const timestamp = G.time;
-  if (action) {
-    G.world.sceneLog.push({ id: G.world.nextSceneId++, kind: 'action', text: '* ' + action, t: timestamp });
-    remember('Ação declarada: ' + action, timestamp);
-  }
-  if (speech) {
-    G.world.sceneLog.push({ id: G.world.nextSceneId++, kind: 'speech', text: '- ' + speech, t: timestamp });
-    remember('Fala de Dante: ' + speech, timestamp);
-  }
+  G.world.sceneLog.push({ id: G.world.nextSceneId++, kind: 'player', text: message, t: timestamp });
+  remember('Dante: ' + message, timestamp);
   if (G.world.sceneLog.length > 300) G.world.sceneLog.splice(0, G.world.sceneLog.length - 300);
   commit();
   return true;
@@ -958,7 +966,7 @@ function busyBannerHTML() {
   const remaining = h ? `${h}h ${m}min` : `${m} min`;
   return `<section class="card busy-card"><div class="busy-title"><div><div class="muted small">DANTE ESTÁ OCUPADO</div><h2 style="margin:2px 0 0">${esc(a.title)}</h2></div><div class="busy-time">${remaining}</div></div><div class="busy-track"><span style="width:${done}%"></span></div><p class="muted small" style="margin:0">A atividade termina às ${fmtTime(a.endTime)}. Você pode consultar as telas, mas Dante não pode iniciar outra atividade até concluir.</p></section>`;
 }
-async function submitSceneToAI(action, speech) {
+async function submitSceneToAI(message) {
   if (!G || sceneRequestPending || (G.world && G.world.activeAction)) return;
   const targetGame = G;
   sceneRequestPending = true;
@@ -967,8 +975,7 @@ async function submitSceneToAI(action, speech) {
   try {
     const place = WORLD_PLACES[G.world.locationId] || WORLD_PLACES.off_scene;
     const payload = {
-      action: String(action || '').trim().slice(0, 500),
-      speech: String(speech || '').trim().slice(0, 500),
+      message: String(message || '').trim().slice(0, 1000),
       gameTime: fmtDate(G.time) + ' ' + fmtTime(G.time),
       location: { name: place.name, area: place.area, description: place.description },
       player: { name: G.player.name, age: G.player.age, bio: G.player.bio, attributes: G.player.attrs },
@@ -986,7 +993,7 @@ async function submitSceneToAI(action, speech) {
     const title = String(data.activityTitle || 'Atividade de Dante').slice(0, 100);
     const narration = String(data.narration || 'A atividade foi concluída.').slice(0, 2200);
     const reactions = Array.isArray(data.npcReactions) ? data.npcReactions.slice(0, 5).map(x => ({ npcId: String(x.npcId || '').slice(0, 40), text: String(x.text || '').slice(0, 500) })).filter(x => x.npcId && x.text && G.npcs.some(q => q.id === x.npcId && q.locationId === G.world.locationId)) : [];
-    if (!addSceneEntries(action, speech)) throw new Error('Ação vazia.');
+    if (!addSceneEntries(message)) throw new Error('Escreva o que Dante faz ou diz.');
     G.world.activeAction = { title, narration, startTime: G.time, endTime: G.time + duration, durationMinutes: duration, npcReactions: reactions };
     remember('Começou a atividade: ' + title + ' (aproximadamente ' + duration + ' minutos).');
     commit();
@@ -1012,8 +1019,6 @@ const VIEWS = {
       const elsewhere = G.npcs.filter(q => q.locationId !== w.locationId);
       const vehicle = w.vehicle;
       const due = vehicle && Number.isFinite(vehicle.returnAt) ? fmtTime(vehicle.returnAt) : null;
-      const log = (w.sceneLog || []).slice(-12).map(e =>
-        `<div class="scene-log-entry"><time>${fmtDate(e.t)} · ${fmtTime(e.t)}</time><span>${esc(e.text)}</span></div>`).join('');
       return `
       <section class="world-hero">
         <div class="world-eyebrow">CENA ATUAL · LOS ANGELES</div>
@@ -1041,19 +1046,12 @@ const VIEWS = {
       </section>
       <section class="card">
         <h2>O que Dante faz ou diz?</h2>
-        <p class="muted small">Você controla Dante. A IA interpreta a ação e a fala, estima a duração e narra as consequências sem decidir pensamentos, falas ou ações de Dante por você.</p>
+        <p class="muted small">Escreva naturalmente. Você pode descrever uma ação, falar com alguém ou fazer as duas coisas na mesma mensagem. A IA interpreta o contexto sem decidir por Dante.</p>
         ${w.activeAction ? `<p class="muted small">Dante está ocupado. Aguarde a atividade terminar para registrar outra ação.</p>` : `<form id="sceneEntryForm">
-          <p class="scene-combo-note">Escreva uma ação, uma fala ou as duas. A IA determinará quanto tempo a atividade exige.</p>
-          <div class="scene-combo">
-            <div class="field"><label for="sceneAction">Ação de Dante (*)</label><textarea id="sceneAction" maxlength="500" placeholder="Ex.: Verificar o carro e analisar as peças do motor."></textarea></div>
-            <div class="field"><label for="sceneSpeech">O que Dante diz (-)</label><textarea id="sceneSpeech" maxlength="500" placeholder="Ex.: Vou começar verificando o estado do motor."></textarea></div>
-          </div>
-          <button class="btn" type="submit"${sceneRequestPending ? ' disabled' : ''}>${sceneRequestPending ? 'Analisando a ação…' : 'Executar ação'}</button>
+          <p class="scene-combo-note">O que Dante faz ou diz?</p>
+          <div class="field"><label for="sceneMessage">Mensagem</label><textarea id="sceneMessage" maxlength="1000" required placeholder="Ex.: Dante se aproxima de Alex e pergunta: “Você já descobriu o que está causando esse barulho no motor?”"></textarea></div>
+          <button class="btn" type="submit"${sceneRequestPending ? ' disabled' : ''}>${sceneRequestPending ? 'Analisando…' : 'Enviar'}</button>
         </form>`}
-      </section>
-      <section class="card">
-        <h2>Registro da cena</h2>
-        ${log || '<p class="muted small">A cena ainda não tem ações ou falas registradas.</p>'}
       </section>
       <section class="card">
         <h2>Passagem do tempo</h2>
@@ -1063,6 +1061,25 @@ const VIEWS = {
           <button class="btn ghost" data-act="adv" data-m="180"${w.activeAction ? ' disabled' : ''}>3 horas</button>
           <button class="btn ghost" data-act="adv" data-m="until6"${w.activeAction ? ' disabled' : ''}>Até 06:00</button>
         </div>
+      </section>`;
+    }
+  },
+  conversas: {
+    label: 'Conversas',
+    render() {
+      const entries = (G.world.sceneLog || []).slice().sort((a, b) => a.t - b.t || a.id - b.id);
+      const content = entries.map(e => {
+        const legacyPlayer = e.kind === 'action' || e.kind === 'speech';
+        const kind = legacyPlayer ? 'player' : e.kind;
+        const author = kind === 'player' ? 'Dante' : kind === 'npc' ? 'Pessoa presente' : 'Cena';
+        const hasNpcName = kind === 'npc' && e.text.includes(': ');
+        const text = hasNpcName ? e.text.slice(e.text.indexOf(': ') + 2) : e.text;
+        const npcName = hasNpcName ? e.text.slice(0, e.text.indexOf(': ')) : author;
+        return `<article class="scene-message ${kind}"><span class="scene-author">${esc(npcName)}</span><div>${esc(text)}</div><time>${fmtDate(e.t)} · ${fmtTime(e.t)}</time></article>`;
+      }).join('');
+      return `<section class="card"><div class="world-section-head"><h2>Conversas</h2><span>${entries.length} registros</span></div>
+        <p class="muted small">Histórico cronológico do que Dante declarou, do que aconteceu na cena e das respostas das pessoas presentes.</p>
+        <div class="scene-conversation">${content || '<div class="scene-empty">Ainda não há conversas registradas. Use a aba Mundo para iniciar uma interação.</div>'}</div>
       </section>`;
     }
   },
@@ -1533,10 +1550,9 @@ document.addEventListener('submit', ev => {
     waSendMessage();
   } else if (ev.target && ev.target.id === 'sceneEntryForm') {
     ev.preventDefault();
-    const action = $('#sceneAction').value;
-    const speech = $('#sceneSpeech').value;
-    if (!action.trim() && !speech.trim()) { toast('Escreva uma ação, uma fala ou as duas.', true); return; }
-    submitSceneToAI(action, speech);
+    const message = $('#sceneMessage').value;
+    if (!message.trim()) { toast('Escreva o que Dante faz ou diz.', true); return; }
+    submitSceneToAI(message);
   }
 });
 
