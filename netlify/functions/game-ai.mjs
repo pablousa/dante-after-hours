@@ -26,6 +26,7 @@ const whatsappResponseSchema = {
   properties: {
     reply: { type: 'STRING' },
     shouldMessage: { type: 'BOOLEAN' },
+    vehicleDecision: { type: 'STRING', enum: ['none', 'approve', 'refuse'] },
     relationshipChanges: {
       type: 'OBJECT',
       properties: {
@@ -36,7 +37,7 @@ const whatsappResponseSchema = {
     },
     memory: { type: 'STRING' }
   },
-  required: ['reply', 'shouldMessage', 'relationshipChanges', 'memory']
+  required: ['reply', 'shouldMessage', 'vehicleDecision', 'relationshipChanges', 'memory']
 };
 
 const whatsappSystemInstruction = `Você interpreta uma pessoa realista dentro do simulador DANTE — AFTER HOURS e escreve mensagens de WhatsApp como o NPC indicado.
@@ -44,9 +45,10 @@ Fale em português brasileiro natural, com voz, vocabulário, ritmo e personalid
 Mantenha continuidade com o histórico, o horário, a cena e as memórias do personagem. Não invente acontecimentos que não estejam no contexto. Não controle Dante: nunca escreva respostas, decisões ou ações por ele.
 As dimensões internas de amizade, confiança, intimidade e romance são independentes. Use-as apenas para orientar familiaridade, abertura e limites; jamais mencione números, barras, níveis ou pontuações. Não transforme amizade em romance automaticamente. Respeite personalidade, limites e reciprocidade.
 Quando o jogador enviar mensagem, responda diretamente ao conteúdo, salvo se houver motivo coerente para não responder. A resposta deve ser uma mensagem do NPC, não uma narração.
+Se Dante pedir naturalmente o carro ou as chaves emprestadas pelo WhatsApp, avalie a personalidade, a confiança, a amizade, o histórico e a situação atual antes de decidir. Use vehicleDecision='approve' somente se este NPC realmente aceitaria emprestar seu veículo; use 'refuse' se negar; use 'none' quando a conversa não tratar de empréstimo de veículo. Não aceite automaticamente: relações fracas, conflitos, falta de confiança ou necessidade do próprio carro podem levar à recusa. Se aprovar, deixe isso claro na mensagem. Nunca aprove se o NPC não tiver um veículo indicado no contexto.
 Quando autonomous=true, decida se este NPC teria motivo genuíno para procurar Dante agora. Se não houver motivo plausível, use shouldMessage=false e reply vazio. Se houver, escreva uma mensagem espontânea coerente com a relação e com o que está acontecendo. Não envie mensagens apenas para preencher atividade.
 relationshipChanges são deltas pequenos entre -2 e 2, normalmente zero. Só altere dimensões quando a conversa justificar. memory deve ser uma lembrança curta e objetiva que ajude a manter continuidade; se não houver algo relevante, use string vazia.
-Retorne somente JSON válido: {"reply":"...","shouldMessage":true,"relationshipChanges":{"friendship":0,"trust":0,"intimacy":0,"romance":0},"memory":""}.`;
+Retorne somente JSON válido: {"reply":"...","shouldMessage":true,"vehicleDecision":"none","relationshipChanges":{"friendship":0,"trust":0,"intimacy":0,"romance":0},"memory":""}.`;
 
 const systemInstruction = `Você é o narrador, mestre de jogo e árbitro de um simulador de vida realista chamado DANTE — AFTER HOURS.
 Sua função é conduzir uma cena viva e coerente a partir do que o jogador declarou, como um bom narrador de RPG narrativo: atento ao contexto, às pessoas, ao ambiente e às consequências. A resposta deve soar natural e humana, não como um relatório automático.
@@ -192,7 +194,7 @@ export default async (request) => {
     npc: input.npc && typeof input.npc === 'object' ? {
       id: cleanText(input.npc.id, 40), name: cleanText(input.npc.name, 80),
       occupation: cleanText(input.npc.occupation, 100), role: cleanText(input.npc.role, 100),
-      personality: cleanText(input.npc.personality, 500),
+      personality: cleanText(input.npc.personality, 500), vehicle: cleanText(input.npc.vehicle, 100),
       relationship: input.npc.relationship && typeof input.npc.relationship === 'object' ? {
         friendship: Number(input.npc.relationship.friendship) || 0,
         trust: Number(input.npc.relationship.trust) || 0,
@@ -325,6 +327,7 @@ export default async (request) => {
       return jsonResponse(200, {
         reply: cleanText(result.reply, 700),
         shouldMessage: input.autonomous === true ? result.shouldMessage === true : true,
+        vehicleDecision: ['approve','refuse'].includes(result.vehicleDecision) ? result.vehicleDecision : 'none',
         relationshipChanges: {
           friendship: clampDelta(changes.friendship),
           trust: clampDelta(changes.trust),
