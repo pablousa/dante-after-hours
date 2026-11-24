@@ -408,6 +408,32 @@ body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#0909
 .scene-composer-busy span{color:var(--muted)}
 .scene-away-list{margin-top:6px}
 @media(max-width:360px){.scene-feed-meta{align-items:flex-start;flex-direction:column;gap:2px}.scene-composer-card{padding:10px}}
+
+/* ---------- Experiência de lojas, restaurantes e deslocamento ---------- */
+#shopOverlay{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:14px}
+#shopPanel{width:min(100%,460px);max-height:min(88dvh,820px);overflow:auto;background:#f7f6f2;color:#171717;border-radius:24px;padding:20px;box-shadow:0 25px 90px #000b}
+.shop-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.shop-top h2{margin:0;font-size:22px;letter-spacing:-.04em}
+.shop-close{width:36px;height:36px;border:0;border-radius:50%;background:#e9e8e4;font-size:21px;color:#222}
+.shop-sub{color:#777;font-size:12px;margin:0 0 16px}
+.shop-table{width:100%;border-collapse:collapse;font-size:13px}
+.shop-table th{text-align:left;color:#777;font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:9px 5px;border-bottom:1px solid #ddd}
+.shop-table td{padding:11px 5px;border-bottom:1px solid #e8e6e1;vertical-align:middle}
+.shop-product{display:flex;align-items:center;gap:8px;font-weight:650}
+.shop-product-icon{font-size:22px}
+.shop-qty{width:64px;padding:7px 4px;border:1px solid #d8d6d0;border-radius:9px;background:#fff;color:#111}
+.shop-payment{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.shop-pay-option{border:1px solid #ddd;border-radius:12px;padding:10px 7px;background:#fff;font-size:12px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center}
+.shop-pay-option:has(input:checked){border-color:#111;background:#f0efeb;box-shadow:inset 0 0 0 1px #111}
+.shop-pay-option input{accent-color:#111}
+.shop-total{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #ddd;padding-top:13px;font-weight:750}
+.shop-total strong{font-size:22px}
+.shop-confirm{width:100%;border:0;border-radius:13px;padding:15px;background:#111;color:#fff;font-weight:750;margin-top:12px}
+.shop-hint{font-size:11px;line-height:1.5;color:#777;margin:10px 0 0}
+.shop-empty{padding:20px;text-align:center;color:#777}
+.ride-lock{border:1px solid #e2d4ae;background:#fff8e8;border-radius:14px;padding:13px;color:#5b461d;font-size:12px;line-height:1.5;margin:12px 0}
+.ride-category{font-size:11px;color:#777;font-weight:750;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
+.ride-destination-note{font-size:11px;color:#777;margin-top:5px}
 </style>
 </head>
 <body>
@@ -497,6 +523,7 @@ body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#0909
 
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <div id="modal" role="dialog" aria-modal="true" hidden><div class="box"><p id="mText"></p><div class="row2"><button class="btn ghost" data-act="no">Cancelar</button><button class="btn" id="mYes" data-act="yes">Confirmar</button></div></div></div>
+<div id="shopOverlay" role="dialog" aria-modal="true" aria-label="Cardápio e compras" hidden><div id="shopPanel"></div></div>
 
 <script>
 'use strict';
@@ -555,7 +582,7 @@ function newGame(player) {
 }
 function grantStartingBalance(d) {
   if (!d || d.starterDepositGranted) return d;
-  const amount = 35000; // US$ 350,00 em centavos
+  const amount = 15000; // R$ 150,00 de saldo inicial
   if (!Number.isSafeInteger(d.bank) || d.bank < 0) d.bank = 0;
   if (d.bank + amount <= 99999999999) {
     d.bank += amount;
@@ -568,7 +595,7 @@ function grantStartingBalance(d) {
   return d;
 }
 function finBlank() {
-  return { wallet: 0, bank: 0, totIn: 0, totOut: 0, tx: [], rec: [], pend: [], nextTx: 1, nextRec: 1, nextPend: 1, card: { limit: 100000, invoice: 0, dueAt: null, overdue: false, score: 620, items: [], nextItem: 1 }, ride: null };
+  return { wallet: 0, bank: 0, totIn: 0, totOut: 0, tx: [], rec: [], pend: [], nextTx: 1, nextRec: 1, nextPend: 1, card: { limit: 60000, invoice: 0, dueAt: null, overdue: false, score: 620, items: [], nextItem: 1 }, ride: null };
 }
 function migrate(d) {
   // v1 → v2: adiciona a economia (saldos zerados; nada é inventado).
@@ -584,7 +611,7 @@ function migrate(d) {
     d.rec = []; d.pend = [];   // v0.3: despesas recorrentes manuais foram removidas
     const card = d.card && typeof d.card === 'object' ? d.card : {};
     d.card = {
-      limit: Math.max(100000, n(card.limit) || 100000), invoice: n(card.invoice),
+      limit: Math.max(n(card.invoice), Math.min(60000, n(card.limit) || 60000)), invoice: n(card.invoice),
       dueAt: Number.isFinite(card.dueAt) ? card.dueAt : null, overdue: card.overdue === true,
       score: clamp(Math.round(Number(card.score) || 620), 300, 1000),
       items: Array.isArray(card.items) ? card.items.slice(-100).filter(x => x && Number.isSafeInteger(x.amount) && x.amount > 0 && Number.isFinite(x.t)).map(x => ({ id:n(x.id), title:String(x.title||'Compra no crédito').slice(0,100), amount:x.amount, t:x.t })) : [],
@@ -612,6 +639,11 @@ function migrate(d) {
     NPC_SEED.forEach(seed => {
       if (!d.npcs.some(q => q.id === seed.id)) d.npcs.push(JSON.parse(JSON.stringify(seed)));
     });
+    if (!d.brazilEconomyAdjusted) {
+      const monthlyIncome = { emily: 240000, frank: 350000, ryan: 420000, chris: 0 };
+      d.npcs.forEach(q => { if (Object.prototype.hasOwnProperty.call(monthlyIncome, q.id)) q.income = monthlyIncome[q.id]; });
+      d.brazilEconomyAdjusted = true;
+    }
     d.npcs.forEach(q => { if (!q.locationId) q.locationId = npcDefaultLocation(q.id); });
     d.world = normalizeWorld(d.world, d.time);
     d.debts = (Array.isArray(d.debts) ? d.debts : []).filter(x => x && Number.isSafeInteger(x.amt) && x.amt > 0 && ['owe', 'owed'].includes(x.dir) && Number.isFinite(x.due) && d.npcs.some(q => q.id === x.npc)).map(x => Object.assign(x, { id: n(x.id), evt: !!x.evt }));
@@ -689,20 +721,22 @@ function advanceTime(mins) {
     if (remaining <= 0) { completeActiveAction(); commit(); renderGame(); return false; }
     mins = Math.min(mins, remaining);
   }
+  const rideWasActive = isRideInProgress();
   const t0 = G.time, before = dayIndex(G.time), ev0 = G.nextEv;
   G.time += mins;
   processCardBilling(t0,G.time);
-  completeRideIfDue();
+  const rideCompleted = completeRideIfDue();
   const after = dayIndex(G.time);
   for (let d = before + 1; d <= after; d++) remember('Começa o dia ' + (d + 1) + '.', DAY0 + d * 1440);
   worldTick(t0, G.time);
   const actionCompleted = !!(G.world && G.world.activeAction && G.time >= G.world.activeAction.endTime);
   if (actionCompleted) completeActiveAction();
-  void maybeNpcInitiates(t0, mins);
+  if (!rideWasActive) void maybeNpcInitiates(t0, mins);
   const ok = commit();
+  if (rideWasActive && !rideCompleted && phonePage === 'uber') renderUber('trip');
   updateClockDisplay();
   // A tela inteira só é reconstruída quando há uma mudança real de conteúdo.
-  if (after !== before || actionCompleted || G.nextEv > ev0) renderGame();
+  if (after !== before || actionCompleted || rideCompleted || G.nextEv > ev0) renderGame();
   if (G.nextEv > ev0) toast('Algo aconteceu. Veja no topo da tela.');
   if (!ok) toast('Atenção: não foi possível salvar o progresso.', true);
   return true;
@@ -726,7 +760,7 @@ function askConfirm(text, cb) { $('#mText').textContent = text; confirmCb = cb; 
 const ACC = { wallet: 'Carteira', bank: 'Banco' };
 const MAX_TX = 1000, MAX_CENTS = 99999999999;
 const R = (ok, msg) => ({ ok, msg });
-const fmtUSD = c => 'US$ ' + Math.floor(c / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + pad(c % 100);
+const fmtUSD = c => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((Number(c) || 0) / 100);
 const accName = a => a.split('>').map(x => ACC[x]).join(' → ');
 function parseMoney(str) {
   const m = /^(\d{1,9})(?:[.,](\d{1,2}))?$/.exec(String(str).trim());
@@ -797,18 +831,49 @@ function getTransactionHistory(f) { return G.tx.filter(x => f === 'all' || x.typ
    Nada aqui mexe em saldo diretamente: tudo passa por addMoney / spendMoney / transferMoney. */
 const LOANCATS = new Set(['Empréstimo', 'Empréstimo concedido', 'Dívida paga', 'Dívida recebida']);  // não contam como receita/despesa
 const NPC_SEED = [
-  { id: 'emily', name: 'Emily Carter', occ: 'Designer gráfica · 23 anos', cash: 85000, income: 420000, bond: 72, gen: 68, rel: 76, locationId: 'apartment_long_beach', role: 'Companheira; relação carinhosa em desenvolvimento', personality: 'Afetuosa, criativa e independente. Gosta de design, música e conversas honestas; percebe quando Dante está distante.' },
-  { id: 'frank', name: 'Frank Miller', occ: 'Mecânico · chefe e mentor', cash: 180000, income: 620000, bond: 58, gen: 72, rel: 85, locationId: 'westside_auto_repair', gigs: true, role: 'Chefe de Dante na Westside Auto Repair', personality: 'Experiente, direto e exigente, mas justo. Fala de forma prática, valoriza trabalho bem feito e demonstra respeito mais por atitudes que elogios.' },
-  { id: 'ryan', name: 'Ryan Mitchell', occ: 'Entusiasta automotivo', cash: 240000, income: 700000, bond: 68, gen: 76, rel: 70, locationId: 'off_scene', role: 'Amigo; proprietário de um Toyota Supra MK4', personality: 'Extrovertido, competitivo e apaixonado por carros. Gosta de provocar os amigos, organizar encontros e compartilhar novidades automotivas.' },
-  { id: 'chris', name: 'Chris', occ: 'Possível cliente', cash: 300000, income: 0, bond: 25, gen: 55, rel: 50, locationId: 'off_scene', role: 'Possível cliente; proprietário de um Ford Mustang GT', personality: 'Pragmático e cauteloso com dinheiro. É educado, mas demora a confiar; prefere clareza, competência e acordos cumpridos.' }
+  { id: 'emily', name: 'Emily Carter', occ: 'Designer gráfica · 23 anos', cash: 35000, income: 240000, bond: 72, gen: 68, rel: 76, locationId: 'apartment_long_beach', role: 'Companheira; relação carinhosa em desenvolvimento', personality: 'Afetuosa, criativa e independente. Gosta de design, música e conversas honestas; percebe quando Dante está distante.' },
+  { id: 'frank', name: 'Frank Miller', occ: 'Mecânico · chefe e mentor', cash: 80000, income: 350000, bond: 58, gen: 72, rel: 85, locationId: 'westside_auto_repair', gigs: true, role: 'Chefe de Dante na Westside Auto Repair', personality: 'Experiente, direto e exigente, mas justo. Fala de forma prática, valoriza trabalho bem feito e demonstra respeito mais por atitudes que elogios.' },
+  { id: 'ryan', name: 'Ryan Mitchell', occ: 'Entusiasta automotivo', cash: 120000, income: 420000, bond: 68, gen: 76, rel: 70, locationId: 'off_scene', role: 'Amigo; proprietário de um Toyota Supra MK4', personality: 'Extrovertido, competitivo e apaixonado por carros. Gosta de provocar os amigos, organizar encontros e compartilhar novidades automotivas.' },
+  { id: 'chris', name: 'Chris', occ: 'Possível cliente', cash: 90000, income: 0, bond: 25, gen: 55, rel: 50, locationId: 'off_scene', role: 'Possível cliente; proprietário de um Ford Mustang GT', personality: 'Pragmático e cauteloso com dinheiro. É educado, mas demora a confiar; prefere clareza, competência e acordos cumpridos.' }
 ];
 
 const WORLD_PLACES = {
-  apartment_long_beach: { name: 'Apartamento de Dante', area: 'Long Beach, Califórnia', description: 'Seu apartamento. Um espaço privado, longe do movimento da oficina.' },
-  westside_auto_repair: { name: 'Westside Auto Repair', area: 'Los Angeles, Califórnia', description: 'A oficina onde Frank trabalha e orienta Dante.' },
-  long_beach_streets: { name: 'Ruas de Long Beach', area: 'Long Beach, Califórnia', description: 'A cidade continua em movimento ao redor.' },
-  rental_return: { name: 'Locadora', area: 'Long Beach, Califórnia', description: 'Local de devolução do veículo alugado.' },
-  off_scene: { name: 'Fora de cena', area: 'Los Angeles, Califórnia', description: 'A pessoa está em outro lugar; sua posição atual ainda não foi estabelecida.' }
+  apartment_long_beach: { name: 'Apartamento de Dante', area: 'Long Beach, Califórnia', icon: '🏠', type: 'home', description: 'Seu apartamento. Um espaço privado, longe do movimento da oficina.' },
+  westside_auto_repair: { name: 'Westside Auto Repair', area: 'Los Angeles, Califórnia', icon: '🔧', type: 'work', description: 'A oficina onde Frank trabalha e orienta Dante.' },
+  long_beach_streets: { name: 'Ruas de Long Beach', area: 'Long Beach, Califórnia', icon: '🛣️', type: 'street', description: 'A cidade continua em movimento ao redor.' },
+  rental_return: { name: 'Locadora', area: 'Long Beach, Califórnia', icon: '🚗', type: 'service', description: 'Local de devolução do veículo alugado.' },
+  long_beach_beach: { name: 'Long Beach — Praia', area: 'Long Beach, Califórnia', icon: '🏖️', type: 'leisure', description: 'Faixa de areia, mar aberto e movimento tranquilo no fim da tarde.' },
+  santa_monica_pier: { name: 'Santa Monica Pier', area: 'Santa Monica, Califórnia', icon: '🎡', type: 'leisure', description: 'Pier à beira-mar, roda-gigante, jogos e restaurantes com vista para o Pacífico.' },
+  venice_beach: { name: 'Venice Beach', area: 'Venice, Los Angeles', icon: '🛹', type: 'leisure', description: 'Calçadão, lojas independentes, artistas de rua e praia.' },
+  downtown_long_beach: { name: 'Downtown Long Beach', area: 'Long Beach, Califórnia', icon: '🌆', type: 'shopping', description: 'Centro urbano com lojas, cafés e movimento noturno.' },
+  fashion_district: { name: 'Pacific Streetwear', area: 'Downtown Long Beach', icon: '👕', type: 'clothing', description: 'Loja de roupas urbanas, tênis e acessórios.' , inventory: [
+    {id:'tee',name:'Camiseta básica',icon:'👕',price:2490},{id:'hoodie',name:'Moletom',icon:'🧥',price:5990},{id:'jeans',name:'Calça jeans',icon:'👖',price:6990},{id:'sneakers',name:'Tênis casual',icon:'👟',price:8990},{id:'cap',name:'Boné',icon:'🧢',price:2990},{id:'watch',name:'Relógio casual',icon:'⌚',price:12990}
+  ]},
+  sneaker_store: { name: 'West Coast Sneakers', area: 'Long Beach, Califórnia', icon: '👟', type: 'clothing', description: 'Tênis esportivos, casuais e peças de streetwear.', inventory: [
+    {id:'runner',name:'Tênis esportivo',icon:'👟',price:10990},{id:'skate',name:'Tênis skate',icon:'🛹',price:8990},{id:'socks',name:'Meias',icon:'🧦',price:1290},{id:'bag',name:'Mochila',icon:'🎒',price:4990}
+  ]},
+  convenience_store: { name: '7-Eleven — Conveniência', area: 'Long Beach, Califórnia', icon: '🏪', type: 'convenience', description: 'Loja de conveniência aberta até tarde, com bebidas, lanches e itens rápidos.', inventory: [
+    {id:'water',name:'Água mineral',icon:'💧',price:250},{id:'soda',name:'Refrigerante',icon:'🥤',price:450},{id:'energy',name:'Energético',icon:'⚡',price:650},{id:'chips',name:'Salgadinho',icon:'🍟',price:550},{id:'sandwich',name:'Sanduíche pronto',icon:'🥪',price:890},{id:'chocolate',name:'Chocolate',icon:'🍫',price:490},{id:'gum',name:'Goma de mascar',icon:'🍬',price:250},{id:'snack',name:'Barra de cereal',icon:'🍫',price:390}
+  ]},
+  gas_station: { name: 'Shell — Posto de gasolina', area: 'Long Beach, Califórnia', icon: '⛽', type: 'gas', description: 'Posto com combustível, loja rápida e itens para o carro.', inventory: [
+    {id:'fuel',name:'Combustível (10 L)',icon:'⛽',price:1890},{id:'oil',name:'Óleo de motor',icon:'🛢️',price:4290},{id:'coolant',name:'Fluido de arrefecimento',icon:'🧴',price:1890},{id:'wipes',name:'Pano de microfibra',icon:'🧽',price:1290},{id:'water_gas',name:'Água mineral',icon:'💧',price:250},{id:'coffee_gas',name:'Café',icon:'☕',price:590}
+  ]},
+  diner: { name: 'Harbor Diner', area: 'Long Beach, Califórnia', icon: '🍔', type: 'restaurant', description: 'Lanchonete americana com hambúrgueres, sanduíches e café.', inventory: [
+    {id:'burger',name:'Hambúrguer clássico',icon:'🍔',price:1490},{id:'cheeseburger',name:'Cheeseburger',icon:'🍔',price:1790},{id:'fries',name:'Batata frita',icon:'🍟',price:690},{id:'milkshake',name:'Milk-shake',icon:'🥤',price:790},{id:'coffee',name:'Café',icon:'☕',price:390},{id:'breakfast',name:'Café da manhã',icon:'🍳',price:1290}
+  ]},
+  italian_restaurant: { name: 'Trattoria Bella', area: 'Long Beach, Califórnia', icon: '🍝', type: 'restaurant', description: 'Restaurante italiano intimista, com massas e pratos preparados na hora.', inventory: [
+    {id:'pasta',name:'Massa ao molho da casa',icon:'🍝',price:2290},{id:'pizza',name:'Pizza individual',icon:'🍕',price:1990},{id:'salad',name:'Salada',icon:'🥗',price:1290},{id:'soda_italian',name:'Refrigerante',icon:'🥤',price:450},{id:'dessert',name:'Tiramisu',icon:'🍰',price:990}
+  ]},
+  coffee_shop: { name: 'Blue Bottle Coffee', area: 'Downtown Long Beach', icon: '☕', type: 'restaurant', description: 'Cafeteria para uma pausa, café e algo para comer.', inventory: [
+    {id:'espresso',name:'Espresso',icon:'☕',price:490},{id:'latte',name:'Café com leite',icon:'🥛',price:690},{id:'croissant',name:'Croissant',icon:'🥐',price:590},{id:'cookie',name:'Cookie',icon:'🍪',price:390},{id:'toast',name:'Torrada com ovos',icon:'🍳',price:1090}
+  ]},
+  supermarket: { name: 'Market Fresh', area: 'Long Beach, Califórnia', icon: '🛒', type: 'convenience', description: 'Mercado de bairro com alimentos, bebidas e produtos básicos.', inventory: [
+    {id:'milk',name:'Leite',icon:'🥛',price:450},{id:'bread',name:'Pão',icon:'🍞',price:390},{id:'eggs',name:'Ovos',icon:'🥚',price:590},{id:'fruit',name:'Frutas',icon:'🍎',price:790},{id:'pasta_market',name:'Macarrão',icon:'🍝',price:350},{id:'detergent',name:'Detergente',icon:'🧴',price:490}
+  ]},
+  auto_parts: { name: 'Performance Parts', area: 'Long Beach, Califórnia', icon: '🧰', type: 'shopping', description: 'Loja de peças e acessórios para projetos automotivos.', inventory: [
+    {id:'filter',name:'Filtro de óleo',icon:'🧰',price:1590},{id:'spark',name:'Jogo de velas',icon:'🔩',price:4990},{id:'cleaner',name:'Limpa-contato',icon:'🧴',price:1290},{id:'gloves',name:'Luvas mecânicas',icon:'🧤',price:1990},{id:'socket',name:'Jogo de soquetes',icon:'🔧',price:7990}
+  ]},
+  off_scene: { name: 'Fora de cena', area: 'Los Angeles, Califórnia', icon: '📍', type: 'unknown', description: 'A pessoa está em outro lugar; sua posição atual ainda não foi estabelecida.' }
 };
 
 function npcDefaultLocation(id) {
@@ -961,7 +1026,7 @@ function eventsHTML() {
   return G.events.slice().sort((a, b) => a.t - b.t).map(e => {
     const q = e.npc && npcOf(e.npc);
     const btns = evChoices(e).map(([k, l, off], i) => `<button class="btn${i ? ' ghost' : ''}" data-act="ev" data-id="${e.id}" data-k="${k}"${off ? ' disabled' : ''}>${esc(l)}</button>`).join('');
-    const other = e.type === 'ask' ? `<div class="crow"><input id="cv${e.id}" inputmode="decimal" placeholder="Outro valor (US$)" aria-label="Outro valor"><button class="btn ghost" data-act="ev" data-id="${e.id}" data-k="other">Oferecer</button></div>` : '';
+    const other = e.type === 'ask' ? `<div class="crow"><input id="cv${e.id}" inputmode="decimal" placeholder="Outro valor (R$)" aria-label="Outro valor"><button class="btn ghost" data-act="ev" data-id="${e.id}" data-k="other">Oferecer</button></div>` : '';
     return `<section class="card ev"><div class="small muted">${q ? esc(q.name) + ' · ' : ''}${fmtTime(e.t)}</div><p style="margin:6px 0 14px">${esc(e.txt)}</p><div class="stack">${btns}${other}</div></section>`;
   }).join('');
 }
@@ -1060,7 +1125,7 @@ const FSUB = {
     const srcRows = Object.keys(src).map(k => `<div class="tx"><div class="tl"><b>${esc(k)}</b><span class="amt income">${fmtUSD(src[k])}</span></div></div>`).join('');
     return `<section class="card"><h2>Dívidas e empréstimos</h2>${G.debts.map(row).join('') || '<p class="muted">Ninguém deve a ninguém por enquanto.</p>'}</section>
       <section class="card"><h2>Fontes de renda</h2>${srcRows || '<p class="muted">Nenhuma renda ainda. Ela vem do que acontece na sua rotina.</p>'}</section>
-      <section class="card"><h2>Caixa eletrônico</h2><div class="crow"><input id="atmAmt" inputmode="decimal" placeholder="Valor (US$)" aria-label="Valor"><button class="btn ghost" data-act="atm" data-k="dep">Depositar</button><button class="btn ghost" data-act="atm" data-k="saq">Sacar</button></div></section>`;
+      <section class="card"><h2>Caixa eletrônico</h2><div class="crow"><input id="atmAmt" inputmode="decimal" placeholder="Valor (R$)" aria-label="Valor"><button class="btn ghost" data-act="atm" data-k="dep">Depositar</button><button class="btn ghost" data-act="atm" data-k="saq">Sacar</button></div></section>`;
   },
   hist() {
     const s = getFinancialSummary(), h = getTransactionHistory(ffilter);
@@ -1077,15 +1142,31 @@ const FSUB = {
 };
 
 let sceneRequestPending = false;
+function isRideInProgress() {
+  const r = G && G.world && G.world.ride;
+  return !!(r && !r.completed && Number.isFinite(r.endTime) && r.endTime > G.time);
+}
+function isDanteBusy() {
+  return !!(G && G.world && (G.world.activeAction || isRideInProgress()));
+}
 function busyBannerHTML() {
   const a = G && G.world && G.world.activeAction;
+  const ride = G && G.world && G.world.ride;
+  if (isRideInProgress()) {
+    const left = Math.max(0, ride.endTime - G.time);
+    const dest = WORLD_PLACES[ride.destination] || WORLD_PLACES.off_scene;
+    const total = Math.max(1, ride.endTime - ride.startTime);
+    const done = clamp((total - left) / total * 100, 0, 100);
+    const remaining = left >= 60 ? `${Math.floor(left / 60)}h ${left % 60}min` : `${left} min`;
+    return `<section class="card busy-card"><div class="busy-title"><div><div class="muted small">🚘 DANTE ESTÁ EM DESLOCAMENTO</div><h2 style="margin:2px 0 0">A caminho de ${esc(dest.name)}</h2></div><div class="busy-time">${remaining}</div></div><div class="busy-track"><span style="width:${done}%"></span></div><p class="muted small" style="margin:0">Durante a corrida, nenhuma outra ação, conversa, compra ou navegação está disponível. O jogo será liberado quando o carro chegar.</p></section>`;
+  }
   if (!a) return '';
   const total = Math.max(1, a.endTime - a.startTime);
   const left = Math.max(0, a.endTime - G.time);
   const done = clamp((total - left) / total * 100, 0, 100);
   const h = Math.floor(left / 60), m = left % 60;
   const remaining = h ? `${h}h ${m}min` : `${m} min`;
-  return `<section class="card busy-card"><div class="busy-title"><div><div class="muted small">DANTE ESTÁ OCUPADO</div><h2 style="margin:2px 0 0">${esc(a.title)}</h2></div><div class="busy-time">${remaining}</div></div><div class="busy-track"><span style="width:${done}%"></span></div><p class="muted small" style="margin:0">A atividade termina às ${fmtTime(a.endTime)}. Você pode consultar as telas, mas Dante não pode iniciar outra atividade até concluir.</p></section>`;
+  return `<section class="card busy-card"><div class="busy-title"><div><div class="muted small">DANTE ESTÁ OCUPADO</div><h2 style="margin:2px 0 0">${esc(a.title)}</h2></div><div class="busy-time">${remaining}</div></div><div class="busy-track"><span style="width:${done}%"></span></div><p class="muted small" style="margin:0">A atividade termina às ${fmtTime(a.endTime)}. Dante não pode iniciar outra atividade até concluir.</p></section>`;
 }
 async function submitSceneToAI(message) {
   if (!G || sceneRequestPending || (G.world && G.world.activeAction)) return;
@@ -1149,12 +1230,11 @@ const VIEWS = {
       }).join('');
       return `
       <section class="world-hero scene-location-card">
-        <div class="world-eyebrow">LOCAL ATUAL · LOS ANGELES</div>
-        <div class="world-time">${gameClock()}</div>
-        <div class="world-date">${fmtDate(G.time)}</div>
+        <div class="world-eyebrow">${place.icon || "📍"} LOCAL ATUAL</div>
         <h1>${esc(place.name)}</h1>
         <div class="world-area">${esc(place.area)}</div>
         <p>${esc(place.description)}</p>
+        ${place.inventory ? `<button class="btn" type="button" data-shop-open="${esc(w.locationId)}">${place.type === 'restaurant' ? '🍽️ Ver cardápio' : '🛍️ Explorar e comprar'}</button>` : ''}
       </section>
       <section class="card scene-presence-card">
         <div class="world-section-head"><h2>Quem está neste local</h2><span>${present.length} ${present.length === 1 ? 'pessoa' : 'pessoas'}</span></div>
@@ -1166,7 +1246,7 @@ const VIEWS = {
         <div class="scene-feed">${log || '<div class="scene-empty">A cena ainda não começou. Registre uma ação ou fala para iniciar.</div>'}</div>
       </section>
       <section class="card scene-composer-card">
-        ${w.activeAction ? `<div class="scene-composer-busy"><b>Dante está ocupado</b><span>Aguarde a atividade terminar para registrar outra ação.</span></div>` : `<form id="sceneEntryForm" class="scene-composer">
+        ${isDanteBusy() ? `<div class="scene-composer-busy"><b>Dante está ocupado</b><span>Aguarde o fim da atividade ou da corrida para registrar outra ação.</span></div>` : `<form id="sceneEntryForm" class="scene-composer">
           <label class="scene-composer-label" for="sceneMessage">O que Dante faz ou diz?</label>
           <div class="scene-compose-row"><textarea id="sceneMessage" maxlength="1000" required rows="2" placeholder="Descreva uma ação, faça uma pergunta ou fale com alguém..."></textarea><button class="scene-send" type="submit" aria-label="Enviar ação"${sceneRequestPending ? ' disabled' : ''}>${sceneRequestPending ? '…' : 'Enviar'}</button></div>
           <div class="scene-compose-hint">A IA considera o local, o horário e as pessoas presentes.</div>
@@ -1193,14 +1273,6 @@ const VIEWS = {
       return `<section class="card"><div class="bal"><div><span class="muted small">Carteira</span><b>${fmtUSD(s.wallet)}</b></div><div><span class="muted small">Banco</span><b>${fmtUSD(s.bank)}</b></div></div>
         <div class="muted small">Patrimônio financeiro: <b class="gold">${fmtUSD(s.total)}</b></div></section>
         <div class="seg">${T.map(([k, l]) => `<button data-act="fsub" data-k="${k}"${k === fsub ? ' aria-pressed="true"' : ''}>${l}</button>`).join('')}</div>${FSUB[fsub]()}`;
-    }
-  },
-  diario: {
-    label: 'Diário',
-    render() {
-      const items = G.diary.map((e, i) => ({ e, i })).sort((a, b) => b.e.t - a.e.t || b.i - a.i).map(x => x.e).map(e =>
-        `<div class="entry"><time>${fmtDate(e.t)} · ${fmtTime(e.t)}</time>${esc(e.text)}</div>`).join('');
-      return `<section class="card"><h2>Diário</h2>${items || '<p class="muted">Nada registrado ainda.</p>'}</section>`;
     }
   },
   sistema: {
@@ -1293,8 +1365,8 @@ function renderGame() {
   updateClockDisplay();
   $('#nav').innerHTML = Object.keys(VIEWS).map(k =>
     `<button data-act="nav" data-v="${k}"${k === view ? ' aria-current="page"' : ''}>${VIEWS[k].label}</button>`).join('');
-  $('#view').innerHTML = busyBannerHTML() + eventsHTML() + VIEWS[view].render();
-  $('#phoneLauncher').hidden = !!(G.world && G.world.activeAction);
+  $('#view').innerHTML = busyBannerHTML() + (isDanteBusy() ? '' : eventsHTML()) + VIEWS[view].render();
+  $('#phoneLauncher').hidden = isDanteBusy();
 }
 function enterGame() {
   view = 'painel';
@@ -1406,16 +1478,16 @@ function openPhoneApp(name) {
 /* ---------- Uber: corridas, passageiros e pagamentos ---------- */
 let rideDraft={destination:'',payment:'cash',passengers:[]};
 const RIDE_DISTANCE={apartment_long_beach:{westside_auto_repair:24,long_beach_streets:4,rental_return:6},westside_auto_repair:{apartment_long_beach:24,long_beach_streets:23,rental_return:25},long_beach_streets:{apartment_long_beach:4,westside_auto_repair:23,rental_return:5},rental_return:{apartment_long_beach:6,westside_auto_repair:25,long_beach_streets:5}};
-function rideFare(origin,destination,count){const km=(RIDE_DISTANCE[origin]&&RIDE_DISTANCE[origin][destination])||8;return Math.round(350+km*115+Math.max(0,count-1)*125);}
+function rideFare(origin,destination,count){const km=(RIDE_DISTANCE[origin]&&RIDE_DISTANCE[origin][destination])||8;return Math.round(500+km*220+Math.max(0,count-1)*250);}
 function rideDuration(origin,destination){const km=(RIDE_DISTANCE[origin]&&RIDE_DISTANCE[origin][destination])||8;return Math.max(5,Math.round(km*2.2));}
 function ridePeople(){return G.npcs.filter(q=>q.locationId===G.world.locationId);}
 function renderUber(page='home'){
  const app=$('#phoneAppScreen');app.className='phone-app-screen';const ride=G.world.ride;
  if(page==='trip'&&ride){const origin=WORLD_PLACES[ride.origin]||WORLD_PLACES.off_scene,dest=WORLD_PLACES[ride.destination]||WORLD_PLACES.off_scene,remaining=Math.max(0,ride.endTime-G.time);
- app.innerHTML=`<div class="ride-app"><div class="ride-head"><button type="button" data-phone="home">‹</button><div class="ride-brand">Uber</div><span></span></div><div class="ride-map"><div class="ride-map-pin">🚘</div></div><span class="ride-tag">${remaining>0?'MOTORISTA A CAMINHO':'CHEGADA'}</span><div class="ride-status"><h4>${remaining>0?'Sua viagem está a caminho':'Viagem concluída'}</h4><p>${remaining>0?'O carro está levando você ao destino.':'Você chegou ao destino.'}</p></div><div class="ride-route"><div><b>Embarque</b><br>${esc(origin.name)}</div><div><b>Destino</b><br>${esc(dest.name)} · ${esc(dest.area)}</div></div><div class="ride-options"><div class="ride-price"><span>Motorista</span><b>${esc(ride.driver||'Motorista parceiro')}</b></div><div class="ride-price"><span>Previsão de chegada</span><b>${remaining} min</b></div><div class="ride-price"><span>Passageiros</span><b>${ride.passengers.length+1}</b></div><div class="ride-price"><span>Pagamento</span><b>${ride.payment==='cash'?'Dinheiro':ride.payment==='pix'?'Pix':'Cartão de crédito'}</b></div><div class="ride-price"><span>Total</span><strong>${fmtUSD(ride.fare)}</strong></div></div><button class="ride-primary" type="button" data-uber="home">Voltar ao início</button><p class="ride-note">A viagem avança junto com o relógio do jogo. Ao chegar, Dante e os acompanhantes selecionados serão movidos para o destino.</p></div>`;return;}
+ app.innerHTML=`<div class="ride-app"><div class="ride-head"><span class="ride-brand">Uber</span><span class="ride-tag">${remaining>0?'VIAGEM EM ANDAMENTO':'VIAGEM CONCLUÍDA'}</span></div><div class="ride-map"><div class="ride-map-pin">🚘</div></div><div class="ride-status"><h4>${remaining>0?'Sua viagem está a caminho':'Viagem concluída'}</h4><p>${remaining>0?'O carro está levando você ao destino.':'Você chegou ao destino.'}</p></div><div class="ride-route"><div><b>Embarque</b><br>${esc(origin.name)}</div><div><b>Destino</b><br>${esc(dest.name)} · ${esc(dest.area)}</div></div><div class="ride-options"><div class="ride-price"><span>Motorista</span><b>${esc(ride.driver||'Motorista parceiro')}</b></div><div class="ride-price"><span>Previsão de chegada</span><b>${remaining} min</b></div><div class="ride-price"><span>Passageiros</span><b>${ride.passengers.length+1}</b></div><div class="ride-price"><span>Pagamento</span><b>${ride.payment==='cash'?'Dinheiro':ride.payment==='pix'?'Pix':'Cartão de crédito'}</b></div><div class="ride-price"><span>Total</span><strong>${fmtUSD(ride.fare)}</strong></div></div>${remaining>0?'<div class="ride-lock">🔒 O celular e as demais ações ficam indisponíveis durante o trajeto. O acesso será liberado automaticamente na chegada.</div>':'<button class="ride-primary" type="button" data-uber="home">Voltar ao início</button>'}<p class="ride-note">${remaining>0?'A viagem avança junto com o relógio do jogo. Ao chegar, Dante e os acompanhantes selecionados serão movidos para o destino.':'Você chegou ao destino. Agora pode continuar explorando a cidade.'}</p></div>`;return;}
  if(ride&&!ride.completed&&ride.endTime>G.time){renderUber('trip');return;}
  const current=WORLD_PLACES[G.world.locationId]||WORLD_PLACES.off_scene;
- const destinations=Object.entries(WORLD_PLACES).filter(([id])=>id!=='off_scene'&&id!==G.world.locationId).map(([id,p])=>`<option value="${id}" ${rideDraft.destination===id?'selected':''}>${esc(p.name)} · ${esc(p.area)}</option>`).join('');
+ const destinations=Object.entries(WORLD_PLACES).filter(([id])=>id!=='off_scene'&&id!==G.world.locationId).map(([id,p])=>`<option value="${id}" ${rideDraft.destination===id?'selected':''}>${p.icon||'📍'} ${esc(p.name)} · ${esc(p.area)}</option>`).join('');
  const people=ridePeople(),selected=new Set(rideDraft.passengers||[]),pax=selected.size+1,dest=WORLD_PLACES[rideDraft.destination],fare=dest?rideFare(G.world.locationId,rideDraft.destination,pax):0;
  const passengerHTML=people.length?people.map(q=>`<label class="ride-choice"><input type="checkbox" name="ridePassenger" value="${esc(q.id)}" ${selected.has(q.id)?'checked':''}><span><b>${esc(q.name)}</b><small>${esc(q.occ)}</small></span></label>`).join(''):'<p class="ride-note">Nenhum acompanhante está neste local.</p>';
  const pay=rideDraft.payment||'cash';
@@ -1436,7 +1508,92 @@ function requestRide(form){
  const drivers=['Alex','Jordan','Taylor','Morgan','Sam'];G.world.ride={origin:G.world.locationId,destination,passengers,fare,payment,driver:drivers[(G.time+fare)%drivers.length],startTime:G.time,endTime:G.time+duration,completed:false};
  rideDraft={destination:'',payment:'cash',passengers:[]};remember('Você chamou um Uber para '+WORLD_PLACES[destination].name+'.');commit();renderUber('trip');toast('Motorista encontrado. Viagem iniciada.');
 }
-function completeRideIfDue(){const r=G?.world?.ride;if(!r||r.completed||G.time<r.endTime)return;G.world.locationId=r.destination;r.completed=true;r.completedAt=G.time;(r.passengers||[]).forEach(id=>{const q=npcOf(id);if(q)q.locationId=r.destination;});const place=WORLD_PLACES[r.destination]||WORLD_PLACES.off_scene;const msg='Dante chegou a '+place.name+(r.passengers?.length?' acompanhado de '+r.passengers.map(id=>npcOf(id)?.name).filter(Boolean).join(', '):'')+'.';if(!Array.isArray(G.world.sceneLog))G.world.sceneLog=[];G.world.sceneLog.push({id:G.world.nextSceneId++,kind:'narration',text:msg,t:G.time});remember(msg);commit();if(phonePage==='uber')renderUber('trip');else toast('Você chegou ao destino: '+place.name+'.');}
+function completeRideIfDue(){const r=G?.world?.ride;if(!r||r.completed||G.time<r.endTime)return false;G.world.locationId=r.destination;r.completed=true;r.completedAt=G.time;(r.passengers||[]).forEach(id=>{const q=npcOf(id);if(q)q.locationId=r.destination;});const place=WORLD_PLACES[r.destination]||WORLD_PLACES.off_scene;const msg='Dante chegou a '+place.name+(r.passengers?.length?' acompanhado de '+r.passengers.map(id=>npcOf(id)?.name).filter(Boolean).join(', '):'')+'.';if(!Array.isArray(G.world.sceneLog))G.world.sceneLog=[];G.world.sceneLog.push({id:G.world.nextSceneId++,kind:'narration',text:msg,t:G.time});remember(msg);commit();if(phonePage==='uber')renderUber('trip');else toast('Você chegou ao destino: '+place.name+'.');if(place.inventory)openShop(r.destination);return true;}
+
+
+/* ---------- Lojas, restaurantes e compras ---------- */
+let shopPlaceId = null;
+function openShop(placeId) {
+  const place = WORLD_PLACES[placeId || G.world.locationId];
+  if (!place || !Array.isArray(place.inventory) || !place.inventory.length) {
+    toast('Não há produtos disponíveis neste local.', true);
+    return;
+  }
+  shopPlaceId = placeId || G.world.locationId;
+  const panel = $('#shopPanel');
+  const rows = place.inventory.map((item, index) => `
+    <tr>
+      <td><div class="shop-product"><span class="shop-product-icon">${item.icon}</span><span>${esc(item.name)}</span></div></td>
+      <td style="text-align:right;white-space:nowrap">${fmtUSD(item.price)}</td>
+      <td style="text-align:right"><input class="shop-qty" type="number" min="0" max="20" value="0" data-shop-qty="${index}" aria-label="Quantidade de ${esc(item.name)}"></td>
+    </tr>`).join('');
+  const title = place.type === 'restaurant' ? 'Cardápio' : 'Loja e produtos';
+  panel.innerHTML = `
+    <div class="shop-top"><div><div class="ride-label">${place.icon} ${esc(place.area)}</div><h2>${esc(place.name)}</h2></div><button class="shop-close" type="button" data-shop-close aria-label="Fechar">×</button></div>
+    <p class="shop-sub">${title} · Escolha os itens e quantidades. Os preços fazem parte da economia simulada.</p>
+    <form id="shopForm">
+      <table class="shop-table"><thead><tr><th>Produto</th><th style="text-align:right">Preço</th><th style="text-align:right">Qtd.</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="ride-label" style="margin-top:18px">Como deseja pagar?</div>
+      <div class="shop-payment">
+        <label class="shop-pay-option"><span>💵</span><b>Dinheiro</b><small>${fmtUSD(G.wallet)}</small><input type="radio" name="shopPayment" value="cash" checked></label>
+        <label class="shop-pay-option"><span>🔷</span><b>Pix</b><small>${fmtUSD(G.bank)}</small><input type="radio" name="shopPayment" value="pix"></label>
+        <label class="shop-pay-option"><span>💳</span><b>Crédito</b><small>${fmtUSD(Math.max(0,G.card.limit-G.card.invoice))}</small><input type="radio" name="shopPayment" value="credit"></label>
+      </div>
+      <div class="shop-total"><span>Total da compra</span><strong id="shopTotal">R$ 0,00</strong></div>
+      <button class="shop-confirm" type="submit">Confirmar compra</button>
+      <p class="shop-hint">A compra será registrada no extrato ou na fatura do cartão. Nenhum valor é descontado até você confirmar.</p>
+    </form>`;
+  $('#shopOverlay').hidden = false;
+  updateShopTotal();
+}
+function shopTotalValue() {
+  const place = WORLD_PLACES[shopPlaceId];
+  if (!place || !place.inventory) return 0;
+  return [...$('#shopPanel').querySelectorAll('[data-shop-qty]')].reduce((sum, input) => {
+    const item = place.inventory[Number(input.dataset.shopQty)];
+    const qty = clamp(Math.floor(Number(input.value) || 0), 0, 20);
+    return sum + (item ? item.price * qty : 0);
+  }, 0);
+}
+function updateShopTotal() {
+  const total = shopTotalValue();
+  const el = $('#shopTotal');
+  if (el) el.textContent = fmtUSD(total);
+  const btn = $('#shopForm button[type="submit"]');
+  if (btn) btn.disabled = total <= 0;
+}
+function closeShop() {
+  $('#shopOverlay').hidden = true;
+  shopPlaceId = null;
+}
+function confirmShopPurchase(form) {
+  const place = WORLD_PLACES[shopPlaceId];
+  if (!place || !place.inventory) return toast('Este estabelecimento não está disponível.', true);
+  const chosen = [...form.querySelectorAll('[data-shop-qty]')].map(input => {
+    const item = place.inventory[Number(input.dataset.shopQty)];
+    const qty = clamp(Math.floor(Number(input.value) || 0), 0, 20);
+    return item && qty > 0 ? { item, qty } : null;
+  }).filter(Boolean);
+  if (!chosen.length) return toast('Escolha pelo menos um produto.', true);
+  const total = chosen.reduce((sum, x) => sum + x.item.price * x.qty, 0);
+  const payment = form.querySelector('input[name="shopPayment"]:checked')?.value || 'cash';
+  const summary = chosen.map(x => `${x.qty}x ${x.item.name}`).join(', ');
+  const title = `${place.name} — ${summary}`;
+  let result;
+  if (payment === 'cash') result = spendMoney(total, 'wallet', title, 'Compras');
+  else if (payment === 'pix') result = spendMoney(total, 'bank', title, 'Compras');
+  else result = chargeCreditCard(total, title);
+  if (!result.ok) return toast(result.msg, true);
+  remember(`${place.type === 'restaurant' ? 'Você consumiu' : 'Você comprou'} ${summary} em ${place.name}, pagando ${fmtUSD(total)}.`);
+  if (place.type === 'restaurant') G.lastMeal = G.time;
+  if (!Array.isArray(G.world.sceneLog)) G.world.sceneLog = [];
+  G.world.sceneLog.push({ id:G.world.nextSceneId++, kind:'narration', text:`Compra realizada em ${place.name}: ${summary}.`, t:G.time });
+  commit();
+  closeShop();
+  if (phonePage === 'bank') renderBankApp('home');
+  renderGame();
+  toast(place.type === 'restaurant' ? 'Pedido confirmado. Bom apetite!' : 'Compra realizada com sucesso.');
+}
 
 /* ---------- WhatsApp: conversas persistentes com os NPCs ---------- */
 let waPage = 'list';
@@ -1639,7 +1796,7 @@ function renderBankApp(page) {
     </div>`;
   } else if (bankPage === 'cards') {
     const c=G.card,available=Math.max(0,c.limit-c.invoice);
-    const items=c.items.slice().reverse().slice(0,12).map(x=>`<div class="nu-invoice-item"><span>${esc(x.title)}<br><small>${fmtShort(x.t)} · ${fmtTime(x.t)}</small></span><b>${fmtUSD(x.amount)}</b></div>`).join('')||'<div class="nu-empty">Nenhuma compra no crédito ainda.</div>';
+    const items=c.items.slice().reverse().slice(0,12).map(x=>`<div class="nu-invoice-item"><span>📍 ${esc(x.title)}</span><b>${fmtUSD(x.amount)}</b></div>`).join('')||'<div class="nu-empty">Nenhuma compra no crédito ainda.</div>';
     app.innerHTML=`<div class="nu-bank"><div class="nu-form-wrap">${bankBackButton()}<h2 class="nu-page-title">Meus cartões</h2><p class="nu-page-sub">Seu cartão acompanha seu histórico de pagamentos.</p>
       <div class="nu-card-visual"><div style="display:flex;justify-content:space-between;align-items:center"><strong>DANTE BANK</strong><span>VISA</span></div><div class="chip"></div><div style="display:flex;justify-content:space-between;align-items:end"><span>CRÉDITO · ${esc(G.player.name.split(/\s+/)[0].toUpperCase())}</span><span>•••• 2048</span></div></div>
       <div class="nu-card-grid"><div class="nu-card-metric"><span>Limite total</span><b>${fmtUSD(c.limit)}</b></div><div class="nu-card-metric"><span>Limite disponível</span><b>${fmtUSD(available)}</b></div><div class="nu-card-metric"><span>Fatura atual</span><b>${fmtUSD(c.invoice)}</b></div><div class="nu-card-metric"><span>Vencimento</span><b>${fmtShort(c.dueAt)}</b></div></div>
@@ -1714,7 +1871,10 @@ function bankMoveMoney(kind) {
 /* Eventos (delegação) */
 
 document.addEventListener('click', ev => {
-  if (G && G.world && G.world.activeAction && ev.target.closest('#phoneLauncher,[data-app],[data-wa],[data-bank-page],[data-bank-filter],[data-bank-action]')) { toast('Dante está ocupado até concluir a atividade.', true); return; }
+  if (isDanteBusy() && ev.target.closest('button,a,input,select,textarea,[data-act],[data-app],[data-wa],[data-bank-page],[data-bank-filter],[data-bank-action],[data-uber],[data-phone],[data-shop-open]')) { toast(isRideInProgress() ? 'Dante está no Uber. Aguarde a chegada para fazer outra coisa.' : 'Dante está ocupado até concluir a atividade.', true); return; }
+  const shopOpen = ev.target.closest('[data-shop-open]');
+  if (shopOpen) { openShop(shopOpen.dataset.shopOpen); return; }
+  if (ev.target.closest('[data-shop-close]') || ev.target.id === 'shopOverlay') { closeShop(); return; }
   if (ev.target.closest('#phoneLauncher')) { openPhone(); return; }
   const pbtn = ev.target.closest('[data-phone]');
   if (pbtn) {
@@ -1754,7 +1914,7 @@ document.addEventListener('click', ev => {
   const el = ev.target.closest('[data-act]');
   if (!el) return;
   const act = el.dataset.act;
-  if (G && G.world && G.world.activeAction && !['nav','menu'].includes(act)) { toast('Dante está ocupado até concluir a atividade.', true); return; }
+  if (isDanteBusy()) { toast(isRideInProgress() ? 'Dante está no Uber. Aguarde a chegada para continuar.' : 'Dante está ocupado até concluir a atividade.', true); return; }
   if (act === 'continue') { const s = loadSave(); if (s) { G = s; enterGame(); } else renderTitle(); }
   else if (act === 'new') {
     if (loadSave()) askConfirm('Já existe um jogo salvo. Ele só será substituído quando você terminar de criar o novo personagem. Continuar?', startCreate);
@@ -1788,23 +1948,33 @@ document.addEventListener('click', ev => {
 });
 
 document.addEventListener('submit', ev => {
-  if (ev.target && ev.target.id === 'waCompose') {
+  if (ev.target && ev.target.id === 'shopForm') {
     ev.preventDefault();
-    if (G && G.world && G.world.activeAction) { toast('Dante está ocupado até concluir a atividade.', true); return; }
+    if (isDanteBusy()) return toast('Aguarde Dante terminar o deslocamento ou a atividade.', true);
+    confirmShopPurchase(ev.target);
+  } else if (ev.target && ev.target.id === 'waCompose') {
+    ev.preventDefault();
+    if (isDanteBusy()) { toast(isRideInProgress() ? 'Dante está no Uber. Aguarde a chegada.' : 'Dante está ocupado até concluir a atividade.', true); return; }
     waSendMessage();
   } else if (ev.target && ev.target.id === 'rideForm') {
     ev.preventDefault();
-    if(G&&G.world&&G.world.activeAction){toast('Dante está ocupado até concluir a atividade.',true);return;}
+    if(isDanteBusy()){toast('Dante está ocupado. Aguarde a conclusão.',true);return;}
     requestRide(ev.target);
   } else if (ev.target && ev.target.id === 'sceneEntryForm') {
     ev.preventDefault();
+    if (isDanteBusy()) { toast(isRideInProgress() ? 'Dante está no Uber. Aguarde a chegada.' : 'Dante está ocupado até concluir a atividade.', true); return; }
     const message = $('#sceneMessage').value;
     if (!message.trim()) { toast('Escreva o que Dante faz ou diz.', true); return; }
     submitSceneToAI(message);
   }
 });
 
+document.addEventListener('input', ev => {
+  if (ev.target && ev.target.matches('[data-shop-qty]')) updateShopTotal();
+});
+
 document.addEventListener('change',ev=>{
+ if(ev.target && ev.target.matches('[data-shop-qty]')) updateShopTotal();
  if(ev.target&&(ev.target.name==='rideGroup'||ev.target.name==='ridePassenger'||ev.target.name==='ridePayment'||ev.target.id==='rideDestination')){
   const form=$('#rideForm');if(!form)return;const group=form.querySelector('input[name="rideGroup"]:checked')?.value||'solo';const box=$('#rideCompanions');if(box)box.hidden=group!=='companions';
   const selected=[...form.querySelectorAll('input[name="ridePassenger"]:checked')].map(x=>x.value);rideDraft={destination:$('#rideDestination')?.value||'',payment:form.querySelector('input[name="ridePayment"]:checked')?.value||'cash',passengers:selected};
