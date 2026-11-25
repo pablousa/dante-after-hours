@@ -493,6 +493,7 @@ body{background:radial-gradient(ellipse at 50% -12%,#29251b 0%,#111113 42%,#0909
 
 
 <!-- Smartphone do jogo -->
+<button id="danteSyncId" type="button" title="Conectar outro site e Telegram" style="position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 68px);z-index:8;border:1px solid #75623b;background:#17150f;color:#e7ce8d;border-radius:12px;padding:10px 12px;font:12px system-ui;" hidden>Sincronizar</button>
 <button id="phoneLauncher" type="button" aria-label="Abrir celular" title="Celular" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="3"/><path d="M9 5h6M10 18.5h4"/></svg></button>
 <section id="phoneOverlay" hidden aria-label="Celular de Dante">
   <div id="phoneDevice">
@@ -688,10 +689,39 @@ function persist() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); return true; }
   catch (e) { storageOk = false; return false; }
 }
+const DANTE_SYNC_KEY = 'dante_after_hours_sync_player_id';
+function danteSyncPlayerId() {
+  try {
+    let id = localStorage.getItem(DANTE_SYNC_KEY);
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem(DANTE_SYNC_KEY, id); }
+    return id;
+  } catch { return ''; }
+}
+let danteSyncTimer = 0;
+function syncSnapshot() {
+  const playerId = danteSyncPlayerId();
+  if (!playerId || !G) return;
+  clearTimeout(danteSyncTimer);
+  danteSyncTimer = setTimeout(() => {
+    fetch('/.netlify/functions/dante-sync', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'save', playerId, snapshot: G }) }).catch(() => {});
+  }, 900);
+}
 function commit() {            // chamada após toda mudança de estado
   const ok = persist();
+  if (ok) syncSnapshot();
   $('#hSave').textContent = ok ? 'Salvo automaticamente' : 'Progresso não está sendo salvo';
   return ok;
+}
+
+
+const syncIdButton = document.getElementById('danteSyncId');
+if (syncIdButton) {
+  syncIdButton.hidden = false;
+  syncIdButton.addEventListener('click', async () => {
+    const id = danteSyncPlayerId();
+    try { await navigator.clipboard.writeText(id); alert('ID da partida copiado. Cole no campo de ID do site Celular do Dante.\n\n' + id); }
+    catch { prompt('Copie o ID da partida e cole no site Celular do Dante:', id); }
+  });
 }
 
 /* ---------- Ações do jogo ---------- */
@@ -1803,6 +1833,19 @@ function applySocialChanges(q, changes, memory) {
     q.social.memories = q.social.memories.slice(-12);
   }
 }
+function applyNpcMoneyDecision(q, decision) {
+  if (!q || !decision || decision.type !== 'send_to_player') return 0;
+  const amount = Math.floor(Number(decision.amountCents));
+  const available = Math.max(0, Math.floor(Number(q.cash) || 0));
+  if (!Number.isSafeInteger(amount) || amount < 100 || amount > available || amount > 5000000) return 0;
+  const transfer = addMoney(amount, 'wallet', 'Pix recebido de ' + q.name, 'Pix recebido');
+  if (!transfer.ok) return 0;
+  q.cash -= amount;
+  addBond(q, 1);
+  remember(q.name + ' enviou ' + fmtUSD(amount) + ' para Dante.');
+  waAddMessage(q.id, 'npc', 'Transferência recebida: ' + fmtUSD(amount) + ' entrou na sua carteira.');
+  return amount;
+}
 async function requestWhatsAppAI(q, playerMessage, autonomous = false) {
   const history = waMessagesFor(q.id).slice(-16).map(m => ({
     speaker: m.from === 'player' ? G.player.name : q.name,
@@ -1818,7 +1861,7 @@ async function requestWhatsAppAI(q, playerMessage, autonomous = false) {
       gameTime:fmtDate(G.time) + ' ' + fmtTime(G.time),
       location:G.world.locationId,
       player:{name:G.player.name, age:G.player.age, bio:G.player.bio, attributes:G.player.attrs},
-      npc:{id:q.id,name:q.name,occupation:q.occ,role:q.role,personality:q.personality,vehicle:({ryan:'Toyota Supra MK4',chris:'Ford Mustang GT',frank:'Chevrolet Silverado',emily:'Honda Civic'})[q.id]||'',relationship:socialContextFor(q)},
+      npc:{id:q.id,name:q.name,occupation:q.occ,role:q.role,personality:q.personality,availableMoneyCents:Math.max(0,Number(q.cash)||0),vehicle:({ryan:'Toyota Supra MK4',chris:'Ford Mustang GT',frank:'Chevrolet Silverado',emily:'Honda Civic'})[q.id]||'',relationship:socialContextFor(q)},
       npcs:presentNpcs,
       recentScene:(G.world.sceneLog || []).slice(-8).map(e => ({kind:e.kind,text:e.text,time:fmtTime(e.t)})),
       conversation:history
@@ -1850,6 +1893,7 @@ async function waSendMessage() {
   try {
     const data = await requestWhatsAppAI(q, text, false);
     if (data.reply) waAddMessage(q.id, 'npc', data.reply);
+    applyNpcMoneyDecision(q, data.moneyDecision);
     if (data.vehicleDecision === 'approve') {
       const delivered = deliverVehicleKeys(q.id);
 
@@ -1885,6 +1929,7 @@ async function maybeNpcInitiates(previousTime, elapsedMinutes) {
   commit();
   try {
     const data = await requestWhatsAppAI(q, '', true);
+    const transferred = applyNpcMoneyDecision(q, data.moneyDecision);
     if (data.shouldMessage && data.reply) {
       waAddMessage(q.id, 'npc', data.reply);
       applySocialChanges(q, data.relationshipChanges, data.memory);
@@ -1893,6 +1938,10 @@ async function maybeNpcInitiates(previousTime, elapsedMinutes) {
       if (!$('#phoneOverlay').hidden && waPage === 'list') renderWhatsApp('list');
       if (!$('#phoneOverlay').hidden && waPage === 'chat' && waActiveNpc === q.id) renderWhatsApp('chat', q.id);
       toast('Nova mensagem de ' + q.name + '.');
+    } else if (transferred) {
+      commit();
+      if (!$('#phoneOverlay').hidden && waPage === 'chat' && waActiveNpc === q.id) renderWhatsApp('chat', q.id);
+      toast(q.name + ' enviou ' + fmtUSD(transferred) + ' para você.');
     }
   } catch (error) {
     // Falhas em iniciativas espontâneas não interrompem o jogo.
@@ -2004,8 +2053,11 @@ function bankConfirmPix() {
   if (q.cash + amount > MAX_CENTS) return toast('O destinatário não pode receber esse valor.', true);
   const result = spendMoney(amount, 'bank', 'Pix para ' + q.name, 'Pix enviado');
   if (!result.ok) return toast(result.msg, true);
-  q.cash += amount;
+  q.cash = Math.min(MAX_CENTS, Math.max(0, Number(q.cash) || 0) + amount);
+  addBond(q, 1);
   remember('Você enviou ' + fmtUSD(amount) + ' por Pix para ' + q.name + (draft.description ? ' (' + draft.description + ')' : '') + '.');
+  waAddMessage(q.id, 'player', 'Enviei ' + fmtUSD(amount) + ' por Pix' + (draft.description ? ' (' + draft.description + ')' : '') + '.');
+  waAddMessage(q.id, 'npc', q.name + ' recebeu ' + fmtUSD(amount) + ' por Pix.');
   const tx = G.tx[G.tx.length - 1];
   G.lastPixReceipt = { txId: tx ? tx.id : G.nextTx - 1, t: G.time, recipient: q.id, recipientName: q.name, amount, description: draft.description || 'Pix enviado' };
   bankPixDraft = null;
